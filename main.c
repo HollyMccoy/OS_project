@@ -1,7 +1,6 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <time.h> //time function
-#include <string.h>
 
 #define MAX_CARDS 18
 #define MAX_SYMBOLS 9
@@ -17,6 +16,7 @@ typedef struct card Card;
 //===================== Prototypes / Globals =======================//
 void populate_deck(Card []);
 void display_cards_faceUp(const Card deck[]);
+void display_cards_faceDown();
 void display_welcome_message();
 void shuffle_deck();
 int get_random_num(int numBeg, int numEnd);
@@ -40,11 +40,15 @@ int main () {
     printf("Printing unshuffled deck:\n");
     display_cards_faceUp(deck);
 
-    printf("Shuffling deck\n");
+    printf("Shuffling deck\n...\n\n");
     shuffle_deck(deck);
 
     printf("Printing shuffled deck:\n");
     display_cards_faceUp(deck);
+
+    printf("Printing deck face down:\n");
+    display_cards_faceDown();
+
     return 0;
 }
 
@@ -58,11 +62,26 @@ void populate_deck(Card deck[]){
   }
 }
 
-// Prints deck of cards
+// Prints deck of cards symbol-side up
 void display_cards_faceUp(const Card deck[]){
   int i = 0;
   for(i=0;i<MAX_CARDS;i++){
     printf("[%s] ", deck[i].symbol);
+    
+    if((i == 5) || (i == 11)){
+        printf("\n");
+    }
+  }
+  printf("\n\n");
+}
+
+// Prints deck of cards symbol-side down
+void display_cards_faceDown(){
+  int i = 0;
+  char letter = 97; // Using ASCII to print alphabet
+  for(i=0;i<MAX_CARDS;i++){
+    printf("[%c] ", letter);
+    letter++; // incrementing to next ASCII
     
     if((i == 5) || (i == 11)){
         printf("\n");
