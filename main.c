@@ -5,7 +5,6 @@
 #define MAX_CARDS 18
 #define MAX_SYMBOLS 9
 
-
 //===================== Cards =======================//
 //structure definition
 struct card{ 
@@ -23,8 +22,6 @@ int get_random_num(int numBeg, int numEnd);
 
 // array of pointers to characters for symbols
 char *symbols[MAX_SYMBOLS] = {"!", "@", "#", "$", "^", "&", "*", "+", "x"};
-
-
 
 //===================== Main Begins... =======================//
 int main () {
@@ -52,8 +49,8 @@ int main () {
     return 0;
 }
 
-
 //===================== Functions / Methods =======================//
+
 // fills a deck with cards
 void populate_deck(Card deck[]){
   int i = 0;
@@ -103,7 +100,6 @@ void shuffle_deck(Card deck[]) {
 
     }
 }
-
 
 // Returns a random number according to specifications
 int get_random_num(int numBeg, int numEnd) {
