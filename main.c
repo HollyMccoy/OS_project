@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <time.h> //time function
+#include <ctype.h> // allows for isAlpha isLower etc
 
 #define MAX_CARDS 18
 #define MAX_SYMBOLS 9
@@ -19,6 +20,7 @@ void display_cards_faceDown();
 void display_welcome_message();
 void shuffle_deck();
 int get_random_num(int numBeg, int numEnd);
+int char_to_num_convert(char theChar);
 
 // array of pointers to characters for symbols
 char *symbols[MAX_SYMBOLS] = {"!", "@", "#", "$", "^", "&", "*", "+", "x"};
@@ -45,6 +47,29 @@ int main () {
 
     printf("Printing deck face down:\n");
     display_cards_faceDown();
+
+    char userInput;
+    int cardLocation;
+
+    //userSelection = 'b';
+    printf("Enter a letter a --> r: ");
+    scanf("%c", &userInput);
+    
+    //ensuring the user enters a character
+    while(!islower(userInput)){
+      fflush(stdin); // fixes double printing the statement below
+      printf("please enter a valid selection: ");
+      scanf("%c", &userInput);
+    }
+
+    if (islower(userInput)){
+      //TODO make sure input was lowercase a -> r
+      cardLocation = char_to_num_convert(userInput);
+
+      printf("%d\n\n", cardLocation);
+    }
+
+    
 
     return 0;
 }
@@ -116,3 +141,39 @@ void display_welcome_message(){
     printf("    +------------------------------+\n\n");
 }
 
+// lowercase 'a' in ASCII is 97,
+// so this function uses the formula to returns a number 
+// represents index of letter in array
+int char_to_num_convert(char theChar){
+  return theChar - 97;
+}
+
+
+/* TODO:
+
+decide how to display and design the board look and how cards
+and locations information are sent
+
+Associate a “value” with each location 
+which has been set by the server at the beginning of the game 
+(perhaps based on the difficulty of remembering the card) and unknown to the clients.
+
+The server has the option to decide if the game should 
+    1. force alternative turns for the players 
+    2. or if each player plays as fast as desired.
+        - If the latter option is selected the initial board will be send to both 
+          clients at the same time. If both clients choose the same locations and the symbols 
+          are matches, then the client who picked the second location first 
+          will receive the points.
+
+*/
+
+
+//POSSIBLE JOBS
+/*
+
+Developer - game functionality
+Developer - client / server
+Tester
+
+*/
