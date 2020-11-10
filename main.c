@@ -1,7 +1,7 @@
 #include <stdlib.h>
 #include <stdio.h>
+#include <stdbool.h>
 #include <time.h> //time function
-#include <ctype.h> // allows for isAlpha isLower etc
 
 #define MAX_CARDS 18
 #define MAX_SYMBOLS 9
@@ -10,6 +10,7 @@
 //structure definition
 struct card{ 
   char *symbol; // this is the special symbol
+  bool isFlipped; // if is flipped is true the card is symbol side up
 };
 typedef struct card Card;
 
@@ -31,45 +32,95 @@ int main () {
     display_welcome_message();
 
     srand(time(0)); 
-    // "deck" is an array of 18 cards
+    // "deck" is a 'struct card' or 'Card' type array
     Card deck[MAX_CARDS];
 
+    //filling deck with cards
     populate_deck(deck);
 
-    printf("Printing unshuffled deck:\n");
-    display_cards_faceUp(deck);
+    //printf("Printing unshuffled deck:\n");
+    //display_cards_faceUp(deck);
 
-    printf("Shuffling deck\n...\n\n");
-    shuffle_deck(deck);
+    //printf("Shuffling deck\n...\n\n");
+    //shuffle_deck(deck);
 
-    printf("Printing shuffled deck:\n");
-    display_cards_faceUp(deck);
+    //printf("Printing shuffled deck:\n");
+    //display_cards_faceUp(deck);
 
-    printf("Printing deck face down:\n");
-    display_cards_faceDown();
+    //printf("Printing deck face down:\n");
+    //display_cards_faceDown(deck);
 
-    char userInput;
-    int cardLocation;
+    char input;
+    int cardLocation, cardLocation2;
+    Card firstCard, secondCard; //these will be compared
+    bool stillPlaying = true;
 
-    //userSelection = 'b';
-    printf("Enter a letter a --> r: ");
-    scanf("%c", &userInput);
-    
-    //ensuring the user enters a character
-    while(!islower(userInput)){
-      fflush(stdin); // fixes double printing the statement below
-      printf("please enter a valid selection: ");
-      scanf("%c", &userInput);
-    }
+    // Game Loop
+    while(stillPlaying){
+      display_cards_faceDown(deck);
+     
+     fflush(stdin);
+      //userSelection = 'b';
+      printf("Enter a letter a --> r: ");
+      scanf("%c", &input);
+      
+      //Validating Proper Input
+      while(!(input >= 'a' && input <= 'r')){
+        fflush(stdin); // fixes double printing the statement below
+        printf("please enter a valid selection: ");
+        scanf("%c", &input);
+      }
 
-    if (islower(userInput)){
-      //TODO make sure input was lowercase a -> r
-      cardLocation = char_to_num_convert(userInput);
-
+      //converting char to array index loc
+      cardLocation = char_to_num_convert(input);
       printf("%d\n\n", cardLocation);
-    }
 
+      //locating card in array
+      firstCard = deck[cardLocation];
+
+      deck[cardLocation].isFlipped = true;
+
+      //reveal card on board
+      display_cards_faceDown(deck);
+      
+      //Getting second card
+      fflush(stdin);
+      //userSelection = 'b';
+      printf("Enter a letter a --> r: ");
+      scanf("%c", &input);
+      
+      //Validating Proper Input
+      while(!(input >= 'a' && input <= 'r')){
+        fflush(stdin); // fixes double printing the statement below
+        printf("please enter a valid selection: ");
+        scanf("%c", &input);
+      }
+
+      //converting char to array index loc
+      cardLocation2 = char_to_num_convert(input);
+      printf("%d\n\n", cardLocation2);
+
+      //locating card in array
+      secondCard = deck[cardLocation2];
+
+      deck[cardLocation2].isFlipped = true;
+
+      //reveal card on board
+      display_cards_faceDown(deck);
     
+
+      //if both card's symbols match
+      if (deck[cardLocation].symbol == deck[cardLocation2].symbol){
+        printf("Match!\n");
+        
+      }
+      //Flipping cards back over if they don't match
+      else{
+        printf("Try again\n");
+        deck[cardLocation].isFlipped = false;  
+        deck[cardLocation2].isFlipped = false;
+      }
+    }
 
     return 0;
 }
@@ -81,6 +132,7 @@ void populate_deck(Card deck[]){
   int i = 0;
   for(i=0;i<MAX_CARDS;i++){
     deck[i].symbol = symbols[i%MAX_SYMBOLS];
+    deck[i].isFlipped = false;
   }
 }
 
@@ -98,11 +150,16 @@ void display_cards_faceUp(const Card deck[]){
 }
 
 // Prints deck of cards symbol-side down
-void display_cards_faceDown(){
+void display_cards_faceDown(const Card deck[]){
   int i = 0;
   char letter = 97; // Using ASCII to print alphabet
   for(i=0;i<MAX_CARDS;i++){
-    printf("[%c] ", letter);
+    if(deck[i].isFlipped){
+      printf("[%s] ", deck[i].symbol);
+    }
+    else{
+      printf("[%c] ", letter);
+    }
     letter++; // incrementing to next ASCII
     
     if((i == 5) || (i == 11)){
