@@ -24,7 +24,7 @@ int get_random_num(int numBeg, int numEnd);
 int char_to_num_convert(char theChar);
 
 // array of pointers to characters for symbols
-char *symbols[MAX_SYMBOLS] = {"!", "@", "#", "$", "^", "&", "*", "+", "x"};
+char *symbols[MAX_SYMBOLS] = {"!", "@", "#", "$", "^", "&", "*", "+", "~"};
 
 //===================== Main Begins... =======================//
 int main () {
@@ -134,11 +134,7 @@ void populate_deck(Card deck[]){
     deck[i].symbol = symbols[i%MAX_SYMBOLS];
     deck[i].isFlipped = false;
   }
-}
 
-// Prints deck of cards symbol-side up
-void display_cards_faceUp(const Card deck[]){
-  int i = 0;
   for(i=0;i<MAX_CARDS;i++){
     printf("[%s] ", deck[i].symbol);
     
@@ -149,7 +145,8 @@ void display_cards_faceUp(const Card deck[]){
   printf("\n\n");
 }
 
-// Prints deck of cards symbol-side down
+// Prints deck of cards symbol-side down,
+// unless the card's isFlipped is true
 void display_cards_faceDown(const Card deck[]){
   int i = 0;
   char letter = 97; // Using ASCII to print alphabet
