@@ -11,17 +11,20 @@
 struct card{ 
   char *symbol; // this is the special symbol
   bool isFlipped; // if is flipped is true the card is symbol side up
+  bool inPlay; // the card is out of play once it has already been matched 
 };
 typedef struct card Card;
 
 //===================== Prototypes / Globals =======================//
 void populate_deck(Card []);
-void display_cards_faceUp(const Card deck[]);
-void display_cards_faceDown();
+void print_deck_faceup( Card deck[]);
+void print_deck();
 void display_welcome_message();
 void shuffle_deck();
 int get_random_num(int numBeg, int numEnd);
 int char_to_num_convert(char theChar);
+bool validate_input(char userInput, Card thedeck[MAX_CARDS]);
+bool isGameOver(Card deck[]);
 
 // array of pointers to characters for symbols
 char *symbols[MAX_SYMBOLS] = {"!", "@", "#", "$", "^", "&", "*", "+", "~"};
@@ -37,90 +40,128 @@ int main () {
 
     //filling deck with cards
     populate_deck(deck);
+    shuffle_deck(deck);
+    print_deck_faceup(deck);
 
     //printf("Printing unshuffled deck:\n");
-    //display_cards_faceUp(deck);
+    //print_deck_faceup(deck);
 
     //printf("Shuffling deck\n...\n\n");
     //shuffle_deck(deck);
 
     //printf("Printing shuffled deck:\n");
-    //display_cards_faceUp(deck);
+    //print_deck_faceup(deck);
 
     //printf("Printing deck face down:\n");
-    //display_cards_faceDown(deck);
+    //print_deck(deck);
 
     char input;
+    int player1_score = 0;
+    int player2_score = 0;
     int cardLocation, cardLocation2;
     Card firstCard, secondCard; //these will be compared
+    bool player1_turn = false;
+    bool player2_turn = false;
     bool stillPlaying = true;
 
-    // Game Loop
-    while(stillPlaying){
-      display_cards_faceDown(deck);
-     
-     fflush(stdin);
-      //userSelection = 'b';
-      printf("Enter a letter a --> r: ");
-      scanf("%c", &input);
-      
-      //Validating Proper Input
-      while(!(input >= 'a' && input <= 'r')){
-        fflush(stdin); // fixes double printing the statement below
-        printf("please enter a valid selection: ");
-        scanf("%c", &input);
-      }
+    bool isTakeTurns = true;
 
-      //converting char to array index loc
-      cardLocation = char_to_num_convert(input);
-      printf("%d\n\n", cardLocation);
+    //------------------------------- Game Loop Begins ------------------------------------
+    // this game mode is for when the players take turns
+    if (isTakeTurns){
+        player1_turn = true; // since they are taking turns player 1 goes first
+        while(stillPlaying){
+            print_deck(deck);
+            
+            fflush(stdin);
+              // userSelection = 'b';
+              printf("Enter a letter a --> r: ");
+              scanf("%c", &input);
+              
+              // checking user input
+              bool isValid = validate_input(input, deck);
+              while(!(isValid)){
+                fflush(stdin); // fixes double printing the statement below
+                printf("please enter a valid selection: ");
+                scanf("%c", &input);
+                isValid = validate_input(input, deck);
+              }
 
-      //locating card in array
-      firstCard = deck[cardLocation];
+              // converting user's input to a number representing a location in the array of cards
+              cardLocation = char_to_num_convert(input);
+              printf("%d\n\n", cardLocation);
 
-      deck[cardLocation].isFlipped = true;
+              // locating card in array
+              firstCard = deck[cardLocation];
 
-      //reveal card on board
-      display_cards_faceDown(deck);
-      
-      //Getting second card
-      fflush(stdin);
-      //userSelection = 'b';
-      printf("Enter a letter a --> r: ");
-      scanf("%c", &input);
-      
-      //Validating Proper Input
-      while(!(input >= 'a' && input <= 'r')){
-        fflush(stdin); // fixes double printing the statement below
-        printf("please enter a valid selection: ");
-        scanf("%c", &input);
-      }
+              // flipping the card face up
+              deck[cardLocation].isFlipped = true;
 
-      //converting char to array index loc
-      cardLocation2 = char_to_num_convert(input);
-      printf("%d\n\n", cardLocation2);
+              print_deck(deck);
+              
+              fflush(stdin);
+              // userSelection = 'b';
+              printf("Enter a letter a --> r: ");
+              scanf("%c", &input);
+              
+              // checking user input
+              isValid = validate_input(input, deck);
+              while(!(isValid)){
+                fflush(stdin); // fixes double printing the statement below
+                printf("please enter a valid selection: ");
+                scanf("%c", &input);
+                isValid = validate_input(input, deck);
+              }
 
-      //locating card in array
-      secondCard = deck[cardLocation2];
+              // converting user's input to a number representing a location in the array of cards
+              cardLocation2 = char_to_num_convert(input);
+              printf("%d\n\n", cardLocation2);
 
-      deck[cardLocation2].isFlipped = true;
+              // locating card in array
+              secondCard = deck[cardLocation2];
 
-      //reveal card on board
-      display_cards_faceDown(deck);
-    
+              // flipping card
+              deck[cardLocation2].isFlipped = true;
 
-      //if both card's symbols match
-      if (deck[cardLocation].symbol == deck[cardLocation2].symbol){
-        printf("Match!\n");
-        
-      }
-      //Flipping cards back over if they don't match
-      else{
-        printf("Try again\n");
-        deck[cardLocation].isFlipped = false;  
-        deck[cardLocation2].isFlipped = false;
-      }
+              //reveal card on board
+              print_deck(deck);
+            
+
+              //if both card's symbols match
+              if (deck[cardLocation].symbol == deck[cardLocation2].symbol){
+                printf("Match!\n");
+                //taking the cards out of play
+                deck[cardLocation].inPlay = false;
+                deck[cardLocation2].inPlay = false;
+                if(player1_turn){
+                  player1_score+=1;
+                  player1_turn = false;
+                  player2_turn = true;
+                }
+                else if(player2_turn){
+                  player2_score+=1;
+                  player2_turn = false;
+                  player1_turn = true;
+                }
+                // function checks to see if all cards are face up, if so game over
+                if(isGameOver(deck)){
+                  printf("\n\nGame Over\n\n");
+                  printf("Final Scores\n\nPlayer 1: %d\nPlayer2: %d\n\n", player1_score, player2_score);
+                  break;
+                }
+                
+              }
+              //If cards do not match, then we will be flipping cards back over
+              else{
+                printf("Try again\n");
+                deck[cardLocation].isFlipped = false;  
+                deck[cardLocation2].isFlipped = false;
+              }
+              printf("Scores\n\nPlayer 1: %d\nPlayer2: %d\n\n", player1_score, player2_score);
+          }
     }
+
+    
 
     return 0;
 }
@@ -132,27 +173,20 @@ void populate_deck(Card deck[]){
   int i = 0;
   for(i=0;i<MAX_CARDS;i++){
     deck[i].symbol = symbols[i%MAX_SYMBOLS];
-    deck[i].isFlipped = false;
+    deck[i].isFlipped = false; // all cards start out face down
+    deck[i].inPlay = true;    // all cards start in play
   }
-
-  for(i=0;i<MAX_CARDS;i++){
-    printf("[%s] ", deck[i].symbol);
-    
-    if((i == 5) || (i == 11)){
-        printf("\n");
-    }
-  }
-  printf("\n\n");
 }
 
 // Prints deck of cards symbol-side down,
 // unless the card's isFlipped is true
-void display_cards_faceDown(const Card deck[]){
+void print_deck(const Card deck[]){
   int i = 0;
   char letter = 97; // Using ASCII to print alphabet
+  printf("               ");
   for(i=0;i<MAX_CARDS;i++){
     if(deck[i].isFlipped){
-      printf("[%s] ", deck[i].symbol);
+      printf(" %s  ", deck[i].symbol);
     }
     else{
       printf("[%c] ", letter);
@@ -160,11 +194,23 @@ void display_cards_faceDown(const Card deck[]){
     letter++; // incrementing to next ASCII
     
     if((i == 5) || (i == 11)){
-        printf("\n");
+        printf("\n               ");
     }
   }
   printf("\n\n");
 }
+
+void print_deck_faceup( Card deck[]){
+  printf("Solution:\n               ");
+  for(int i=0;i<MAX_CARDS;i++){
+    printf("[%s] ", deck[i].symbol);
+    
+    if((i == 5) || (i == 11)){
+        printf("\n               ");
+    }
+  }
+  printf("\n\n");
+} 
 
 // Shuffles cards using Fisher Yates Shuffle Algorithm
 void shuffle_deck(Card deck[]) {
@@ -186,6 +232,37 @@ int get_random_num(int numBeg, int numEnd) {
     return ranNum;
 }
 
+//this ensures the user enters a valid input
+bool validate_input(char userInput, Card thedeck[MAX_CARDS]){
+  if(!(userInput >= 'a' && userInput <= 'r')){
+        return false;
+  }
+  // converting user's input to a number representing a location in the array of cards
+  int location = char_to_num_convert(userInput);
+
+  // if the card has already been flipped then that's an invalid selection
+  if(!(thedeck[location].inPlay)){
+    return false;
+  }
+
+  if(thedeck[location].isFlipped==true){
+    return false;
+  }
+
+  return true;
+}
+
+// Iterates through deck, if there is a card still face down we return false,
+// if all cards are face up then we return true and the game is over
+bool isGameOver(Card deck[]){
+  for(int i=0;i<MAX_CARDS;++i){
+    if(deck[i].isFlipped == false){
+      return false;
+    }
+  }
+  return true;
+}
+
 void display_welcome_message(){
     printf("\n");
     printf("    +------------------------------+\n");
@@ -201,6 +278,7 @@ void display_welcome_message(){
 int char_to_num_convert(char theChar){
   return theChar - 97;
 }
+
 
 
 /* TODO:
