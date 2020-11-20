@@ -5,6 +5,7 @@
 
 #define MAX_CARDS 18
 #define MAX_SYMBOLS 9
+#define TEST_MODE 1 // If TEST_MODE = 1 (True) Will Begin Testing TEST_MODE = 0 (False) Will Skip Testing
 
 //===================== Cards =======================//
 //structure definition
@@ -23,6 +24,7 @@ void display_welcome_message();
 void shuffle_deck();
 int get_random_num(int numBeg, int numEnd);
 int char_to_num_convert(char theChar);
+void test(void* expected, void* actual, const char* testName); // Testing Prototype
 bool validate_input(char userInput, Card thedeck[MAX_CARDS]);
 bool isGameOver(Card deck[]);
 
@@ -32,6 +34,16 @@ char *symbols[MAX_SYMBOLS] = {"!", "@", "#", "$", "^", "&", "*", "+", "~"};
 //===================== Main Begins... =======================//
 int main () {
 
+    if(TEST_MODE == 1){
+
+      printf("TESTING MODE");
+
+      srand(time(0)); 
+      // "deck" is a 'struct card' or 'Card' type array
+      Card deck[MAX_CARDS];
+
+
+    } else {
     display_welcome_message();
 
     srand(time(0)); 
@@ -161,8 +173,7 @@ int main () {
           }
     }
 
-    
-
+    }
     return 0;
 }
 
@@ -279,7 +290,14 @@ int char_to_num_convert(char theChar){
   return theChar - 97;
 }
 
-
+// Testing Function
+void test(void* expected, void* actual, const char* testName){
+  if(expected == actual){
+    printf("\n%s PASSED", testName);
+  } else {
+    printf("\n%s FAILED expected: %d actual: %d", testName, expected, actual);
+  }
+}
 
 /* TODO:
 
