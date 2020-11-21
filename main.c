@@ -28,7 +28,8 @@ void display_welcome_message(); //Replaced in main by printf statement
 void shuffle_deck();
 int get_random_num(int numBeg, int numEnd);
 int char_to_num_convert(char theChar);
-void test(void* expected, void* actual, const char* testName); // Testing Prototype
+void intTest(int expected, int actual, const char* testName); // Testing Prototype
+void boolTest(bool expected, bool actual, const char* testName); // Testing Prototype
 bool validate_input(char userInput, Card thedeck[MAX_CARDS]);
 bool isGameOver(Card deck[]);
 
@@ -39,13 +40,49 @@ char *symbols[MAX_SYMBOLS] = {"!", "@", "#", "$", "^", "&", "*", "+", "~"};
 int main () {
 
     if(TEST_MODE == 1){
-
       printf("TESTING MODE");
 
       srand(time(0)); 
       // "deck" is a 'struct card' or 'Card' type array
       Card deck[MAX_CARDS];
+      //"buffer" is an array containing messages to be sent to clients
+      char buffer[MAX_BUFFER];
+      //filling deck with cards
+      populate_deck(deck);
+      shuffle_deck(deck);
+      // Testing validate_input
+      boolTest(true,validate_input('a',deck),"validate_input a");
+      boolTest(true,validate_input('A',deck),"validate_input A");
+      boolTest(true,validate_input('r',deck),"validate_input r");
+      boolTest(true,validate_input('R',deck),"validate_input R");
+      boolTest(true,validate_input('t',deck),"validate_input t");
+      boolTest(false,validate_input('T',deck),"validate_input T");
 
+      // Testing char_to_num_convert
+      int aciiLetter = 97; // a
+      for (int i = 0; i < 18; ++i){
+        intTest(i,char_to_num_convert(aciiLetter),"Char_to_num_convert");
+        aciiLetter++;
+      }
+
+      // Testing isGameOver
+      // Flipping All Cards Over
+      for(int i=0;i<MAX_CARDS;++i){
+        deck[i].isFlipped = true;
+      }
+      boolTest(true,isGameOver(deck),"isGameOver - all cards flipped = true");
+      // Flipping All Cards Back to False
+      for(int i=0;i<MAX_CARDS;++i){
+        deck[i].isFlipped = false;
+      }
+      boolTest(false,isGameOver(deck),"isGameOver - all cards flipped = false");
+
+      for(int i = 0; i < MAX_CARDS; ++i){
+        int randCardNumber = get_random_num(0,MAX_CARDS - 1);
+        deck[randCardNumber].isFlipped = true;
+        boolTest(false,isGameOver(deck),"isGameOver - random card flipped = true");
+        deck[randCardNumber].isFlipped = false;
+      }
 
     } else {
     //Game welcome message
@@ -359,14 +396,22 @@ int char_to_num_convert(char theChar){
   return theChar - 97;
 }
 
-// Testing Function
-void test(void* expected, void* actual, const char* testName){
+// Testing Functions
+void intTest(int expected, int actual, const char* testName){
   if(expected == actual){
     printf("\n%s PASSED", testName);
   } else {
     printf("\n%s FAILED expected: %d actual: %d", testName, expected, actual);
   }
 }
+void boolTest(bool expected, bool actual, const char* testName){
+  if(expected == actual){
+    printf("\n%s PASSED", testName);
+  } else {
+    printf("\n%s FAILED expected: %d actual: %d", testName, expected, actual);
+  }
+}
+
 
 /* TODO:
 
