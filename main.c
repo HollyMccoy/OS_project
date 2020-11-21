@@ -5,7 +5,8 @@
 
 #define MAX_CARDS 18
 #define MAX_SYMBOLS 9
-#define TEST_MODE 1 // If TEST_MODE = 1 (True) Will Begin Testing TEST_MODE = 0 (False) Will Skip Testing
+#define MAX_BUFFER 256
+#define TEST_MODE 0 // If TEST_MODE = 1 (True) Will Begin Testing TEST_MODE = 0 (False) Will Skip Testing
 
 //===================== Cards =======================//
 //structure definition
@@ -18,7 +19,8 @@ typedef struct card Card;
 
 //===================== Prototypes / Globals =======================//
 void populate_deck(Card []);
-void print_deck_faceup( Card deck[]);
+void print_deck_faceup( Card deck[]); //Replaced by char * faceup_deck_to_buffer
+char * faceup_deck_to_buffer(Card deck[], char buffer[]);
 void print_deck();
 void display_welcome_message();
 void shuffle_deck();
@@ -50,10 +52,14 @@ int main () {
     // "deck" is a 'struct card' or 'Card' type array
     Card deck[MAX_CARDS];
 
+    //"buffer" is an array containing messages to be sent to clients
+    char buffer[MAX_BUFFER];
+
     //filling deck with cards
     populate_deck(deck);
     shuffle_deck(deck);
-    print_deck_faceup(deck);
+    //print_deck_faceup(deck);
+    printf(faceup_deck_to_buffer(deck, buffer));
 
     //printf("Printing unshuffled deck:\n");
     //print_deck_faceup(deck);
@@ -222,6 +228,29 @@ void print_deck_faceup( Card deck[]){
   }
   printf("\n\n");
 } 
+
+//Populates buffer with faceup deck; returns pointer to buffer for
+//use with print statements and message sending
+char * faceup_deck_to_buffer(Card deck[], char buffer[]){
+    //To-do: add error checks for buffer size (more important for non-deck buffer functions)
+    int i = 0;
+    buffer[i++] = '\t';
+    for(int j=0;j<MAX_CARDS;j++, i++){
+        buffer[i++] = '[';
+        buffer[i++] = *deck[j].symbol;
+        buffer[i++] = ']';
+        buffer[i] = ' ';
+
+        if ((j == 5) || (j==11)){
+            buffer[i++] = '\n';
+            buffer[i] = '\t';
+        }
+    }
+    buffer[i++] = '\n';
+    buffer[i++] = '\n';
+    buffer[i] = '\0';
+    return buffer;
+}
 
 // Shuffles cards using Fisher Yates Shuffle Algorithm
 void shuffle_deck(Card deck[]) {
