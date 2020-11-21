@@ -21,7 +21,8 @@ typedef struct card Card;
 void populate_deck(Card []);
 void print_deck_faceup( Card deck[]); //Replaced by char * faceup_deck_to_buffer
 char * faceup_deck_to_buffer(Card deck[], char buffer[]);
-void print_deck();
+void print_deck(); //Replaced by char * facedown_deck_to_buffer
+char * facedown_deck_to_buffer(const Card *deck, char buffer[]);
 void display_welcome_message();
 void shuffle_deck();
 int get_random_num(int numBeg, int numEnd);
@@ -89,7 +90,8 @@ int main () {
     if (isTakeTurns){
         player1_turn = true; // since they are taking turns player 1 goes first
         while(stillPlaying){
-            print_deck(deck);
+            //print_deck(deck);
+            printf(facedown_deck_to_buffer(deck, buffer));
             
             fflush(stdin);
               // userSelection = 'b';
@@ -115,7 +117,8 @@ int main () {
               // flipping the card face up
               deck[cardLocation].isFlipped = true;
 
-              print_deck(deck);
+              //print_deck(deck);
+              printf(facedown_deck_to_buffer(deck, buffer));
               
               fflush(stdin);
               // userSelection = 'b';
@@ -142,7 +145,8 @@ int main () {
               deck[cardLocation2].isFlipped = true;
 
               //reveal card on board
-              print_deck(deck);
+              //print_deck(deck);
+              printf(facedown_deck_to_buffer(deck, buffer));
             
 
               //if both card's symbols match
@@ -215,6 +219,39 @@ void print_deck(const Card deck[]){
     }
   }
   printf("\n\n");
+}
+
+//Populates buffer deck of cards symbol-side down, unless the card's isFlipped
+//is true; returns pointer to buffer for use with print statements and message sending
+char * facedown_deck_to_buffer(const Card *deck, char buffer[]){
+    //To-do: add error checks for buffer size (more important for non-deck buffer functions)
+    int j = 0;
+    char letter = 97; //Using ASCII to print alphabet
+    buffer[j++] = '\t';
+    for(int i=0; i<MAX_CARDS; i++, j++){
+        if(deck[i].isFlipped){
+            buffer[j++] = ' ';
+            buffer[j++] = *deck[i].symbol;
+            buffer[j++] = ' ';
+            buffer[j] = ' ';
+        }
+        else{
+            buffer[j++] = '[';
+            buffer[j++] = letter;
+            buffer[j++] = ']';
+            buffer[j] = ' ';
+        }
+        letter++;
+
+        if((i == 5) || (i == 11)){
+            buffer[j++] = '\n';
+            buffer[j] = '\t';
+        }
+    }
+    buffer[j++] = '\n';
+    buffer[j++] = '\n';
+    buffer[j] = '\0';
+    return buffer;
 }
 
 void print_deck_faceup( Card deck[]){
