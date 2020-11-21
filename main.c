@@ -6,6 +6,7 @@
 #define MAX_CARDS 18
 #define MAX_SYMBOLS 9
 #define MAX_BUFFER 256
+#define MAX_PLAYERS 5
 #define TEST_MODE 0 // If TEST_MODE = 1 (True) Will Begin Testing TEST_MODE = 0 (False) Will Skip Testing
 
 //===================== Cards =======================//
@@ -82,20 +83,18 @@ int main () {
     //print_deck(deck);
 
     char input;
-    int player1_score = 0;
-    int player2_score = 0;
     int cardLocation, cardLocation2;
     Card firstCard, secondCard; //these will be compared
-    bool player1_turn = false;
-    bool player2_turn = false;
     bool stillPlaying = true;
 
     bool isTakeTurns = true;
+    int playerTurn = 0; //Tracks which player's turn it is; starts at 0
+    int numOfPlayers = 2;
+    int playerScores[MAX_PLAYERS] = {0}; //Tracks each player's score
 
     //------------------------------- Game Loop Begins ------------------------------------
     // this game mode is for when the players take turns
     if (isTakeTurns){
-        player1_turn = true; // since they are taking turns player 1 goes first
         while(stillPlaying){
             //print_deck(deck);
             printf(facedown_deck_to_buffer(deck, buffer));
@@ -155,27 +154,20 @@ int main () {
               //print_deck(deck);
               printf(facedown_deck_to_buffer(deck, buffer));
             
-
               //if both card's symbols match
               if (deck[cardLocation].symbol == deck[cardLocation2].symbol){
                 printf("Match!\n");
                 //taking the cards out of play
                 deck[cardLocation].inPlay = false;
                 deck[cardLocation2].inPlay = false;
-                if(player1_turn){
-                  player1_score+=1;
-                  player1_turn = false;
-                  player2_turn = true;
-                }
-                else if(player2_turn){
-                  player2_score+=1;
-                  player2_turn = false;
-                  player1_turn = true;
-                }
+
+                //Adding point to player
+                playerScores[playerTurn]++;
+
                 // function checks to see if all cards are face up, if so game over
                 if(isGameOver(deck)){
                   printf("\n\nGame Over\n\n");
-                  printf("Final Scores\n\nPlayer 1: %d\nPlayer2: %d\n\n", player1_score, player2_score);
+                  printf("Final Scores\n\nPlayer 1: %d\nPlayer 2: %d\n\n", playerScores[0], playerScores[1]);
                   break;
                 }
                 
@@ -186,7 +178,11 @@ int main () {
                 deck[cardLocation].isFlipped = false;  
                 deck[cardLocation2].isFlipped = false;
               }
-              printf("Scores\n\nPlayer 1: %d\nPlayer2: %d\n\n", player1_score, player2_score);
+              printf("Scores\n\nPlayer 1: %d\nPlayer 2: %d\n\n", playerScores[0], playerScores[1]);
+
+              //Rotate player turn
+              if(++playerTurn == numOfPlayers)
+                playerTurn = 0;
           }
     }
 
