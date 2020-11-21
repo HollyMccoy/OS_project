@@ -23,7 +23,7 @@ void print_deck_faceup( Card deck[]); //Replaced by char * faceup_deck_to_buffer
 char * faceup_deck_to_buffer(Card deck[], char buffer[]);
 void print_deck(); //Replaced by char * facedown_deck_to_buffer
 char * facedown_deck_to_buffer(const Card *deck, char buffer[]);
-void display_welcome_message();
+void display_welcome_message(); //Replaced in main by printf statement
 void shuffle_deck();
 int get_random_num(int numBeg, int numEnd);
 int char_to_num_convert(char theChar);
