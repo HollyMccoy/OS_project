@@ -7,7 +7,7 @@
 #define MAX_SYMBOLS 9
 #define MAX_BUFFER 256
 #define MAX_PLAYERS 5
-#define TEST_MODE 0 // If TEST_MODE = 1 (True) Will Begin Testing TEST_MODE = 0 (False) Will Skip Testing
+#define TEST_MODE 1 // If TEST_MODE = 1 (True) Will Begin Testing TEST_MODE = 0 (False) Will Skip Testing
 
 //===================== Cards =======================//
 //structure definition
@@ -50,6 +50,14 @@ int main () {
       //filling deck with cards
       populate_deck(deck);
       shuffle_deck(deck);
+
+      // Testing char_to_num_convert
+      int asciiLetter = 97; // a
+      for (int i = 0; i < 18; ++i){
+        intTest(i,char_to_num_convert(asciiLetter),"Char_to_num_convert");
+        asciiLetter++;
+      }
+
       // Testing validate_input
       boolTest(true,validate_input('a',deck),"validate_input a");
       boolTest(true,validate_input('A',deck),"validate_input A");
@@ -57,12 +65,26 @@ int main () {
       boolTest(true,validate_input('R',deck),"validate_input R");
       boolTest(true,validate_input('t',deck),"validate_input t");
       boolTest(false,validate_input('T',deck),"validate_input T");
+      // Picking a Random Card
+      // Flipping the Random Card
+      // Checking if Card is valid
+      for(int i = 0; i < MAX_CARDS; ++i){
+        int random = (rand() % (114 - 97 + 1)) + 97; 
+        int randomLocation = random - 97;
+        deck[randomLocation].isFlipped = true;
+        boolTest(false,validate_input((char)random,deck),"validate_input - random card flipped = true");
+        deck[randomLocation].isFlipped = false;
+      }
 
-      // Testing char_to_num_convert
-      int aciiLetter = 97; // a
-      for (int i = 0; i < 18; ++i){
-        intTest(i,char_to_num_convert(aciiLetter),"Char_to_num_convert");
-        aciiLetter++;
+      // Picking a Random Card
+      // Making Card no in Play
+      // Checking if Card is valid
+      for(int i = 0; i < MAX_CARDS; ++i){
+        int random = (rand() % (114 - 97 + 1)) + 97; 
+        int randomLocation = random - 97;
+        deck[randomLocation].inPlay = false;
+        boolTest(false,validate_input((char)random,deck),"validate_input - random card in Play = false");
+        deck[randomLocation].isFlipped = true;
       }
 
       // Testing isGameOver
