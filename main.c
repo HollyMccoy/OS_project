@@ -47,7 +47,14 @@ int main () {
 
 
     } else {
-    display_welcome_message();
+    //Game welcome message
+    char * welcome = "\n"
+    "    +------------------------------+\n"
+    "    |                              |\n"
+    "    |      MATCHING CARD GAME      |\n"
+    "    |                              |\n"
+    "    +------------------------------+\n\n";
+    printf(welcome);
 
     srand(time(0)); 
     // "deck" is a 'struct card' or 'Card' type array
