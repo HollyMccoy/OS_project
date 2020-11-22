@@ -124,6 +124,8 @@ int main(int argc, char* argv[]) {
 void play_game(int sock) {
     int status;
     char buffer[256];
+    char score1[10];
+    char score2[10];
     bzero(buffer, 256); // empty buffer
     char input;
     int cardLocation, cardLocation2;
@@ -252,6 +254,17 @@ void play_game(int sock) {
                 deck[cardLocation2].isFlipped = false;
             }
             printf("Scores\n\nPlayer 1: %d\nPlayer 2: %d\n\n", playerScores[0], playerScores[1]);
+            bzero(buffer, 256); // clear buffer
+            sprintf(score1, "%d", playerScores[0]);
+            sprintf(score2, "%d", playerScores[1]);
+            strcpy(buffer,"Scores\n\nPlayer 1: ");
+            strcat(buffer, score1);
+            strcat(buffer, "\nPlayer 2: ");
+            strcat(buffer, score2);
+            strcat(buffer, "\n\n");
+            
+            
+            status = write(sock, buffer, 255);
 
             //Rotate player turn
             if (++playerTurn == numOfPlayers)

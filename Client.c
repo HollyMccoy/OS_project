@@ -118,6 +118,21 @@ void Play(int socketid)
                 exit(1);
             }
 
+            bzero(buffer, 256); // clear buffer
+            fgets(buffer, 255, stdin); // place input into buffer
+            printf("buffer: %s", buffer);
+            status = write(socketid, buffer, strlen(buffer));
+            bzero(buffer, 256);
+
+            status = read(socketid, buffer, 255);
+            printf("%s \n", buffer);
+
+            status = read(socketid, buffer, 255);
+            printf("%s \n", buffer);
+
+            status = read(socketid, buffer, 255);
+            printf("%s \n", buffer);
+
         }
     }
 
