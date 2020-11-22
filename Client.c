@@ -92,18 +92,21 @@ void Play(int socketid)
     int status;
     bool stillPlaying = true;
     bool my_turn = true;
+    bool waiting = true;
     char buffer[256];
 
     while (stillPlaying) // check if still playing. still playing should not adjust and game should continue without end
     {
         if (my_turn)
         {
+            //take first answer
             bzero(buffer, 256); // clear buffer
             fgets(buffer, 255, stdin); // place input into buffer
             printf("buffer: %s", buffer);
+
             status = write(socketid, buffer, strlen(buffer));
             bzero(buffer, 256);
-           
+            
             if (status < 0)
             {
                 printf("error while sending client message to server\n");
@@ -118,12 +121,62 @@ void Play(int socketid)
                 exit(1);
             }
 
+
+
+            /* 
+            
+            pick card 1
+            
+            */
             bzero(buffer, 256); // clear buffer
             fgets(buffer, 255, stdin); // place input into buffer
             printf("buffer: %s", buffer);
+
             status = write(socketid, buffer, strlen(buffer));
             bzero(buffer, 256);
 
+            if (status < 0)
+            {
+                printf("error while sending client message to server\n");
+            }
+
+
+            status = read(socketid, buffer, 255);
+            printf("%s \n", buffer);
+
+            if (status < 0) {
+                perror("error while reading message from server");
+                exit(1);
+            }
+
+
+            /*
+            
+            pick card 2
+            
+            */
+
+
+            bzero(buffer, 256); // clear buffer
+            fgets(buffer, 255, stdin); // place input into buffer
+            printf("buffer: %s", buffer);
+
+            status = write(socketid, buffer, strlen(buffer));
+            bzero(buffer, 256);
+
+            if (status < 0)
+            {
+                printf("error while sending client message to server\n");
+            }
+
+
+            status = read(socketid, buffer, 255);
+            printf("%s \n", buffer);
+
+            if (status < 0) {
+                perror("error while reading message from server");
+                exit(1);
+            }
             status = read(socketid, buffer, 255);
             printf("%s \n", buffer);
 

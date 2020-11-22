@@ -196,12 +196,15 @@ void play_game(int sock) {
             strcpy(buffer, facedown_deck_to_buffer(deck, buffer)); // copy into buffer again
             strcat(buffer, "\nplease enter a selection a-->r\n");
             status = write(sock, buffer, 255);
-
+            printf(buffer);
             //fflush(stdin);
             // userSelection = 'b';
             //printf("Enter a letter a --> r: ");
+            /*
+            take in the second value
+            */
             status = read(sock, buffer, 255);
-
+            printf("%s", buffer);
             // checking user input
             isValid = validate_input(buffer[0], deck);
             while (!(isValid)) {
@@ -225,7 +228,6 @@ void play_game(int sock) {
             //print_deck(deck);
             bzero(buffer, 256); // clear buffer
             strcpy(buffer, facedown_deck_to_buffer(deck, buffer)); // copy into buffer again
-            strcat(buffer, "\nplease enter a selection a-->r\n");
             status = write(sock, buffer, 255);
 
             //if both card's symbols match
