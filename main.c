@@ -7,7 +7,8 @@
 #define MAX_SYMBOLS 9
 #define MAX_BUFFER 256
 #define MAX_PLAYERS 5
-#define TEST_MODE 1 // If TEST_MODE = 1 (True) Will Begin Testing TEST_MODE = 0 (False) Will Skip Testing
+#define TEST_MODE 0 // If TEST_MODE = 1 (True) Will Begin Testing TEST_MODE = 0 (False) Will Skip Testing
+
 
 //===================== Cards =======================//
 //structure definition
@@ -288,9 +289,11 @@ void print_deck(const Card deck[]){
 char * facedown_deck_to_buffer(const Card *deck, char buffer[]){
     //To-do: add error checks for buffer size (more important for non-deck buffer functions)
     int j = 0;
+    int i;
     char letter = 97; //Using ASCII to print alphabet
     buffer[j++] = '\t';
-    for(int i=0; i<MAX_CARDS; i++, j++){
+    for( i=0; i<MAX_CARDS; i++, j++){
+
         if(deck[i].isFlipped){
             buffer[j++] = ' ';
             buffer[j++] = *deck[i].symbol;
@@ -317,8 +320,9 @@ char * facedown_deck_to_buffer(const Card *deck, char buffer[]){
 }
 
 void print_deck_faceup( Card deck[]){
+    int i;
   printf("Solution:\n               ");
-  for(int i=0;i<MAX_CARDS;i++){
+  for(i=0;i<MAX_CARDS;i++){
     printf("[%s] ", deck[i].symbol);
     
     if((i == 5) || (i == 11)){
@@ -332,9 +336,9 @@ void print_deck_faceup( Card deck[]){
 //use with print statements and message sending
 char * faceup_deck_to_buffer(Card deck[], char buffer[]){
     //To-do: add error checks for buffer size (more important for non-deck buffer functions)
-    int i = 0;
+    int i = 0,j;
     buffer[i++] = '\t';
-    for(int j=0;j<MAX_CARDS;j++, i++){
+    for(j=0;j<MAX_CARDS;j++, i++){
         buffer[i++] = '[';
         buffer[i++] = *deck[j].symbol;
         buffer[i++] = ']';
@@ -394,7 +398,8 @@ bool validate_input(char userInput, Card thedeck[MAX_CARDS]){
 // Iterates through deck, if there is a card still face down we return false,
 // if all cards are face up then we return true and the game is over
 bool isGameOver(Card deck[]){
-  for(int i=0;i<MAX_CARDS;++i){
+    int i;
+  for(i=0;i<MAX_CARDS;++i){
     if(deck[i].isFlipped == false){
       return false;
     }

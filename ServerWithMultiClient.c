@@ -127,8 +127,9 @@ void doprocessing (int sock) {
    int status;
    char buffer[256];
    bzero(buffer,256); // empty buffer
-   strcpy(buffer, facedown_deck_to_buffer(deck, buffer)); // copy result of facedown_deck_to_buffer into buffer
-   status = write(sock, buffer, 210); // send buffer to client
+
+   //strcpy(buffer, facedown_deck_to_buffer(deck, buffer)); // copy result of facedown_deck_to_buffer into buffer
+   //status = write(sock, buffer, 210); // send buffer to client
    status= read(sock,buffer,255); // read any input
    
 
@@ -137,21 +138,146 @@ void doprocessing (int sock) {
       exit(1);
    }
    
-   printf("You entered: %s\n",buffer); //  should print what input the server recieved
+   printf("client entered: \n%s",buffer); //  should print what input the server recieved
+   strcpy(buffer, facedown_deck_to_buffer(deck, buffer)); // copy into buffer again
+   status = write(sock, buffer, 255); // write to socket
+   printf("\nshould be outputing :\n%s", buffer);
+   bzero(buffer, 256); // clear buffer
+   status = read(sock, buffer, 255);
    bool isValid = validate_input(buffer[0], deck); // check if input is valid
+   
    while (!(isValid)) {
        bzero(buffer, 256); // fixes double printing the statement below
        status = write(sock, "please enter a valid selection: ", 210); // ask for valid input
+
+       printf("Should be giving output: %s",buffer);
        status = read(sock, buffer, 255);// read input
        isValid = validate_input(buffer[0], deck); // adjust is valid again
    }
+  /* printf("\nisvalid = true");
    strcpy(buffer, facedown_deck_to_buffer(deck,buffer)); // copy into buffer again
    status = write(sock, buffer, 210); // writeto socket
+   printf("\nshould be outputing :\n%s", buffer);
    bzero(buffer, 256); // clear buffer
-       
+    */   
    
    
    
+
+
+
+   char input;
+   int cardLocation, cardLocation2;
+   Card firstCard, secondCard; //these will be compared
+   bool stillPlaying = true;
+
+   bool isTakeTurns = true;
+   int playerTurn = 0; //Tracks which player's turn it is; starts at 0
+   int numOfPlayers = 2;
+   int playerScores[MAX_PLAYERS] = { 0 }; //Tracks each player's score
+
+   //------------------------------- Game Loop Begins ------------------------------------
+   // this game mode is for when the players take turns
+   if (isTakeTurns) {
+       while (stillPlaying) {
+           //print_deck(deck);
+           printf(facedown_deck_to_buffer(deck, buffer));
+
+           fflush(stdin);
+           // userSelection = 'b';
+           status = write(sock, "please enter a selection a-->r", 210);
+           scanf("%c", &input);
+
+           // checking user input
+           bool isValid = validate_input(input, deck);
+           while (!(isValid)) {
+               fflush(stdin); // fixes double printing the statement below
+               printf("please enter a valid selection: ");
+               scanf("%c", &input);
+               isValid = validate_input(input, deck);
+           }
+
+           // converting user's input to a number representing a location in the array of cards
+           cardLocation = char_to_num_convert(input);
+           printf("%d\n\n", cardLocation);
+
+           // locating card in array
+           firstCard = deck[cardLocation];
+
+           // flipping the card face up
+           deck[cardLocation].isFlipped = true;
+
+           //print_deck(deck);
+           printf(facedown_deck_to_buffer(deck, buffer));
+
+           fflush(stdin);
+           // userSelection = 'b';
+           printf("Enter a letter a --> r: ");
+           scanf("%c", &input);
+
+           // checking user input
+           isValid = validate_input(input, deck);
+           while (!(isValid)) {
+               fflush(stdin); // fixes double printing the statement below
+               printf("please enter a valid selection: ");
+               scanf("%c", &input);
+               isValid = validate_input(input, deck);
+           }
+
+           // converting user's input to a number representing a location in the array of cards
+           cardLocation2 = char_to_num_convert(input);
+           printf("%d\n\n", cardLocation2);
+
+           // locating card in array
+           secondCard = deck[cardLocation2];
+
+           // flipping card
+           deck[cardLocation2].isFlipped = true;
+
+           //reveal card on board
+           //print_deck(deck);
+           printf(facedown_deck_to_buffer(deck, buffer));
+
+           //if both card's symbols match
+           if (deck[cardLocation].symbol == deck[cardLocation2].symbol) {
+               printf("Match!\n");
+               //taking the cards out of play
+               deck[cardLocation].inPlay = false;
+               deck[cardLocation2].inPlay = false;
+
+               //Adding point to player
+               playerScores[playerTurn]++;
+
+               // function checks to see if all cards are face up, if so game over
+               if (isGameOver(deck)) {
+                   printf("\n\nGame Over\n\n");
+                   printf("Final Scores\n\nPlayer 1: %d\nPlayer 2: %d\n\n", playerScores[0], playerScores[1]);
+                   break;
+               }
+
+           }
+           //If cards do not match, then we will be flipping cards back over
+           else {
+               printf("Try again\n");
+               deck[cardLocation].isFlipped = false;
+               deck[cardLocation2].isFlipped = false;
+           }
+           printf("Scores\n\nPlayer 1: %d\nPlayer 2: %d\n\n", playerScores[0], playerScores[1]);
+
+           //Rotate player turn
+           if (++playerTurn == numOfPlayers)
+               playerTurn = 0;
+       }
+   }
+
+
+
+
+
+
+
+
+
 
    if (status < 0) {
       perror("ERROR writing to socket");
