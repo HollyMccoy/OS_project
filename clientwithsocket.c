@@ -27,7 +27,7 @@ void main()
    int  status;        /* error status holder*/
    char buffer[256];   /* the message buffer*/
    struct sockaddr_in serv_addr;
-
+   bool stillPlaying=true;
    struct hostent *server;
 
    /* this creates the socket*/
@@ -83,34 +83,37 @@ void main()
        "    |                              |\n"
        "    +------------------------------+\n\n";
    printf(welcome);
-   bzero(buffer,256);
-   fgets(buffer,255,stdin);
-   status = write(socketid, buffer, strlen(buffer));
-   
-   if (status < 0)
+   status = read(socketid, buffer, strlen(buffer));
+   while (stillPlaying)
    {
-     printf("error while sending client message to server\n");
-   }
-   
-/* Read server response */
-   bzero(buffer,256);
-   status = read(socketid, buffer, 255);
-   
-   /* Upon successful completion, read() returns the number 
-   of bytes actually read from the file associated with fields.
-   This number is never greater than nbyte. Otherwise, -1 is      	returned. */
-   if (status < 0) {
-      perror("error while reading message from server");
-      exit(1);
-   }
-   
-   printf("%s\n",buffer);
+       bzero(buffer, 256);
+       fgets(buffer, 255, stdin);
+       status = write(socketid, buffer, strlen(buffer));
 
+       if (status < 0)
+       {
+           printf("error while sending client message to server\n");
+       }
+
+       /* Read server response */
+       bzero(buffer, 256);
+       status = read(socketid, buffer, 255);
+
+       /* Upon successful completion, read() returns the number
+       of bytes actually read from the file associated with fields.
+       This number is never greater than nbyte. Otherwise, -1 is      	returned. */
+       if (status < 0) {
+           perror("error while reading message from server");
+           exit(1);
+       }
+
+       printf("%s\n", buffer);
+   }
 
 
 
    /* this closes the socket*/
-   close(socketid);
+    close(socketid);
 
   
 } 
