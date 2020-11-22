@@ -12,7 +12,7 @@ on a machine. The name of this machine must be entered in the function gethostby
 #include<sys/socket.h>
 #include<netinet/in.h>
 #include<netdb.h>
-
+#include <stdbool.h>
 #define PORTNUM  5001 /* the port number that the server is listening to*/
 #define DEFAULT_PROTOCOL 0  /*constant for default protocol*/
 
@@ -84,6 +84,7 @@ void main()
        "    +------------------------------+\n\n";
    printf(welcome);
    status = read(socketid, buffer, strlen(buffer));
+   printf("%s\n", buffer);
    while (stillPlaying) // check if still playing. still playing should not adjust and game should continue without end
    {
        bzero(buffer, 256); // clear buffer
@@ -98,7 +99,7 @@ void main()
        /* Read server response */
        bzero(buffer, 256); // clear 
        status = read(socketid, buffer, 255); //wait for server response
-
+       printf("%s\n", buffer);
        /* Upon successful completion, read() returns the number
        of bytes actually read from the file associated with fields.
        This number is never greater than nbyte. Otherwise, -1 is      	returned. */
