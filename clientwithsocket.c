@@ -81,14 +81,29 @@ void main()
        "    |                              |\n"
        "    |      MATCHING CARD GAME      |\n"
        "    |                              |\n"
-       "    +------------------------------+\n\n";
+       "    +------------------------------+\n\n"
+       "    Enter \"ready\" to begin playing\n\n";
    printf(welcome);
-   status = read(socketid, buffer, strlen(buffer));
+   bzero(buffer, 256); // clear buffer
+   fgets(buffer, 255, stdin); // place input into buffer
+   printf("buffer: %s", buffer);
+   status = write(socketid, buffer, strlen(buffer));
+   bzero(buffer, 256);
+
+   status = read(socketid, buffer, 255);
+   printf("%s \n", buffer);
+
+   bzero(buffer, 256);
+   fgets(buffer, 255, stdin); // place input into buffer
+   printf("buffer: %s", buffer);
+   status = write(socketid, buffer, strlen(buffer));
+   
    printf("%s\n", buffer);
    while (stillPlaying) // check if still playing. still playing should not adjust and game should continue without end
    {
        bzero(buffer, 256); // clear buffer
        fgets(buffer, 255, stdin); // place input into buffer
+       printf("buffer: %s", buffer);
        status = write(socketid, buffer, strlen(buffer)); // write to server
 
        if (status < 0)
@@ -99,7 +114,7 @@ void main()
        /* Read server response */
        bzero(buffer, 256); // clear 
        status = read(socketid, buffer, 255); //wait for server response
-       printf("%s\n", buffer);
+       printf("buffer: %s", buffer);
        /* Upon successful completion, read() returns the number
        of bytes actually read from the file associated with fields.
        This number is never greater than nbyte. Otherwise, -1 is      	returned. */
@@ -108,7 +123,7 @@ void main()
            exit(1);
        }
 
-       printf("%s\n", buffer);// output
+      
    }
 
 
