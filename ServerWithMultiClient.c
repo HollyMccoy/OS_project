@@ -89,9 +89,9 @@ int main( int argc, char *argv[] ) {
 
    srand(time(0));
    // "deck" is a 'struct card' or 'Card' type array
-   populate_deck(deck);
+   populate_deck(deck); // populate deck
    printf("Deck of cards created");
-   print_deck_faceup(deck);
+   print_deck_faceup(deck); // print
 
    while (1) {
       newsockfd = accept(sockfd, (struct sockaddr *) &cli_addr, 	&clilen);
@@ -112,7 +112,7 @@ int main( int argc, char *argv[] ) {
       if (pid == 0) {
          /* This is the client process */
          close(sockfd);
-         doprocessing(newsockfd);
+         doprocessing(newsockfd); // run actual game in do process
          exit(0);
       }
       else {
@@ -126,10 +126,10 @@ int main( int argc, char *argv[] ) {
 void doprocessing (int sock) {
    int status;
    char buffer[256];
-   bzero(buffer,256);
-   strcpy(buffer, facedown_deck_to_buffer(deck, buffer));
-   status = write(sock, buffer, 210);
-   status= read(sock,buffer,255);
+   bzero(buffer,256); // empty buffer
+   strcpy(buffer, facedown_deck_to_buffer(deck, buffer)); // copy result of facedown_deck_to_buffer into buffer
+   status = write(sock, buffer, 210); // send buffer to client
+   status= read(sock,buffer,255); // read any input
    
 
    if (status < 0) {
@@ -137,17 +137,17 @@ void doprocessing (int sock) {
       exit(1);
    }
    
-   printf("You entered: %s\n",buffer);
-   bool isValid = validate_input(buffer[0], deck);
+   printf("You entered: %s\n",buffer); //  should print what input the server recieved
+   bool isValid = validate_input(buffer[0], deck); // check if input is valid
    while (!(isValid)) {
        bzero(buffer, 256); // fixes double printing the statement below
-       status = write(sock, "please enter a valid selection: ", 210);
-       status = read(sock, buffer, 255);
-       isValid = validate_input(buffer[0], deck);
+       status = write(sock, "please enter a valid selection: ", 210); // ask for valid input
+       status = read(sock, buffer, 255);// read input
+       isValid = validate_input(buffer[0], deck); // adjust is valid again
    }
-   strcpy(buffer, facedown_deck_to_buffer(deck,buffer));
-   status = write(sock, buffer, 210);
-   bzero(buffer, 256);
+   strcpy(buffer, facedown_deck_to_buffer(deck,buffer)); // copy into buffer again
+   status = write(sock, buffer, 210); // writeto socket
+   bzero(buffer, 256); // clear buffer
        
    
    
