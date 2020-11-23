@@ -42,7 +42,7 @@ void play_game(int sock);
 
 // array of pointers to characters for symbols
 char* symbols[MAX_SYMBOLS] = { "!", "@", "#", "$", "^", "&", "*", "+", "~" };
-#define PORTNUM  5002 /* the port number the server will listen to*/
+#define PORTNUM  5012 /* the port number the server will listen to*/
 #define DEFAULT_PROTOCOL 0  /*constant for default protocol*/
 
 

@@ -7,7 +7,7 @@
 #include<netinet/in.h>
 #include<netdb.h>
 #include <stdbool.h>
-#define PORTNUM  5002 /* the port number that the server is listening to*/
+#define PORTNUM  5012 /* the port number that the server is listening to*/
 #define DEFAULT_PROTOCOL 0  /*constant for default protocol*/
 void Play(int socketid);
 void take_card_input(int socketid);
