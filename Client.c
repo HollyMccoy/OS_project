@@ -7,10 +7,10 @@
 #include<netinet/in.h>
 #include<netdb.h>
 #include <stdbool.h>
-#define PORTNUM  5001 /* the port number that the server is listening to*/
+#define PORTNUM  5002 /* the port number that the server is listening to*/
 #define DEFAULT_PROTOCOL 0  /*constant for default protocol*/
 void Play(int socketid);
-
+void take_card_input(int socketid);
 
 void main()
 
@@ -128,27 +128,8 @@ void Play(int socketid)
             pick card 1
             
             */
-            bzero(buffer, 256); // clear buffer
-            fgets(buffer, 255, stdin); // place input into buffer
-            printf("buffer: %s", buffer);
 
-            status = write(socketid, buffer, strlen(buffer));
-            bzero(buffer, 256);
-
-            if (status < 0)
-            {
-                printf("error while sending client message to server\n");
-            }
-
-
-            status = read(socketid, buffer, 255);
-            printf("%s \n", buffer);
-
-            if (status < 0) {
-                perror("error while reading message from server");
-                exit(1);
-            }
-
+            take_card_input(socketid);
 
             /*
             
@@ -157,26 +138,9 @@ void Play(int socketid)
             */
 
 
-            bzero(buffer, 256); // clear buffer
-            fgets(buffer, 255, stdin); // place input into buffer
-            printf("buffer: %s", buffer);
-
-            status = write(socketid, buffer, strlen(buffer));
-            bzero(buffer, 256);
-
-            if (status < 0)
-            {
-                printf("error while sending client message to server\n");
-            }
+            take_card_input(socketid);
 
 
-            status = read(socketid, buffer, 255);
-            printf("%s \n", buffer);
-
-            if (status < 0) {
-                perror("error while reading message from server");
-                exit(1);
-            }
             status = read(socketid, buffer, 255);
             printf("%s \n", buffer);
 
@@ -191,4 +155,50 @@ void Play(int socketid)
 
 }
 
+
+
+void take_card_input(int socketid)
+{
+    int status;
+    char buffer[256];
+
+    bzero(buffer, 256); // clear buffer
+    fgets(buffer, 255, stdin); // place input into buffer
+    printf("buffer: %s", buffer);
+
+    status = write(socketid, buffer, strlen(buffer));
+    if (status < 0)
+    {
+        printf("error while sending client message to server\n");
+    }
+    bzero(buffer, 256);
+
+    status = read(socketid, buffer, 255);
+    printf("%s", buffer);
+    while (buffer[0] != '1')
+    {
+        bzero(buffer, 256); // clear buffer
+        fgets(buffer, 255, stdin); // place input into buffer
+        printf("buffer: %s", buffer);
+
+        status = write(socketid, buffer, strlen(buffer));
+        if (status < 0)
+        {
+            printf("error while sending client message to server\n");
+        }
+        bzero(buffer, 256);
+
+        status = read(socketid, buffer, 255);
+    }
+
+    status = read(socketid, buffer, 255);
+    printf("%s \n", buffer);
+
+    if (status < 0) {
+        perror("error while reading message from server");
+        exit(1);
+    }
+
+
+}
 

@@ -42,7 +42,7 @@ void play_game(int sock);
 
 // array of pointers to characters for symbols
 char* symbols[MAX_SYMBOLS] = { "!", "@", "#", "$", "^", "&", "*", "+", "~" };
-#define PORTNUM  5001 /* the port number the server will listen to*/
+#define PORTNUM  5002 /* the port number the server will listen to*/
 #define DEFAULT_PROTOCOL 0  /*constant for default protocol*/
 
 
@@ -140,7 +140,7 @@ void play_game(int sock) {
     //strcpy(buffer, facedown_deck_to_buffer(deck, buffer)); // copy result of facedown_deck_to_buffer into buffer
     //status = write(sock, buffer, 210); // send buffer to client
     status = read(sock, buffer, 255); // read any input
-
+    printf(buffer);
 
     if (status < 0) {
         perror("ERROR reading from socket");
@@ -154,6 +154,11 @@ void play_game(int sock) {
     if (isTakeTurns) {
         while (stillPlaying) {
             //print_deck(deck);
+            /*
+            
+            first card value
+            
+            */
             bzero(buffer, 256); // clear buffer
             strcpy(buffer, facedown_deck_to_buffer(deck, buffer)); // copy into buffer again
             strcat(buffer, "\nplease enter a selection a-->r\n");
@@ -171,10 +176,11 @@ void play_game(int sock) {
 
 
             status = read(sock, buffer, 255);
-            printf("%s", buffer);
+            printf("first read: %s", buffer);
             // checking user input
             bool isValid = validate_input(buffer[0], deck);
-            while (!(isValid)) {
+            while (!(isValid)) 
+            {
                 fflush(stdin); // fixes double printing the statement below
                 status = write(sock, buffer, 255);
                 status = read(sock, buffer, 255);
@@ -191,29 +197,29 @@ void play_game(int sock) {
             // flipping the card face up
             deck[cardLocation].isFlipped = true;
 
-            //print_deck(deck);
+            
             bzero(buffer, 256); // clear buffer
             strcpy(buffer, facedown_deck_to_buffer(deck, buffer)); // copy into buffer again
             strcat(buffer, "\nplease enter a selection a-->r\n");
             status = write(sock, buffer, 255);
-            printf(buffer);
-            //fflush(stdin);
-            // userSelection = 'b';
-            //printf("Enter a letter a --> r: ");
+            printf("write: %s",buffer);
+           
             /*
-            take in the second value
+
+            take in the second card
+
             */
             status = read(sock, buffer, 255);
-            printf("%s", buffer);
+            printf("read 2: %s", buffer);
             // checking user input
             isValid = validate_input(buffer[0], deck);
-            while (!(isValid)) {
-                fflush(stdin); // fixes double printing the statement below
-                status = write(sock, buffer, 255);
+            while (!(isValid)) 
+            {
+                status = write(sock, "wrong", 255);
                 status = read(sock, buffer, 255);
                 isValid = validate_input(buffer[0], deck);
             }
-
+            status = write(sock, "1", 255);
             // converting user's input to a number representing a location in the array of cards
             cardLocation2 = char_to_num_convert(buffer[0]);
             printf("%d\n\n", cardLocation2);
