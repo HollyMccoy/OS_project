@@ -425,7 +425,7 @@ void print_deck_faceup() {
     int i;
     printf("Solution:\n               ");
     for (i = 0; i < MAX_CARDS; i++) {
-        printf("[%s] ", game_data->deck[i]->symbol);
+        printf("[%s] ", game_data->deck[i].symbol);
 
         if ((i == 5) || (i == 11)) {
             printf("\n               ");
