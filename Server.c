@@ -42,7 +42,7 @@ void play_game(int sock);
 
 // array of pointers to characters for symbols
 char* symbols[MAX_SYMBOLS] = { "!", "@", "#", "$", "^", "&", "*", "+", "~" };
-#define PORTNUM  5012 /* the port number the server will listen to*/
+#define PORTNUM  5016 /* the port number the server will listen to*/
 #define DEFAULT_PROTOCOL 0  /*constant for default protocol*/
 
 
@@ -124,8 +124,9 @@ int main(int argc, char* argv[]) {
 void play_game(int sock) {
     int status;
     char buffer[256];
-    char score1[10];
-    char score2[10];
+    char score1[12];
+    char score2[12];
+    char turn[12];
     bzero(buffer, 256); // empty buffer
     char input;
     int cardLocation, cardLocation2;
@@ -153,19 +154,34 @@ void play_game(int sock) {
     // this game mode is for when the players take turns
     if (isTakeTurns) {
         while (stillPlaying) {
+            /*
+            
+             print player's turn
+            
+            */
+            
             //print_deck(deck);
             /*
             
-            first card value
+             write card set up and player turn to clients
             
             */
+            printf("player %d turn: ", (playerTurn + 1));
+            sprintf(turn, "%d", (playerTurn + 1));
+           
             bzero(buffer, 256); // clear buffer
+            strcpy(buffer, "\nPlayer ");
+            strcat(buffer, turn);
+            strcat(buffer, "'s turn: \n");
+            status = write(sock, buffer, 255);
+            bzero(buffer, 256);
             strcpy(buffer, facedown_deck_to_buffer(deck, buffer)); // copy into buffer again
             strcat(buffer, "\nplease enter a selection a-->r\n");
             status = write(sock, buffer, 255);
-            fflush(stdin);
+            
+            printf("%s", buffer);
             // userSelection = 'b';
-
+            bzero(buffer, 256);
 
 
             if (status < 0) 
@@ -179,6 +195,14 @@ void play_game(int sock) {
             printf("first read: %s", buffer);
             // checking user input
             bool isValid = validate_input(buffer[0], deck);
+            if (isValid)
+            {
+                printf("true");
+            }
+            else
+            {
+                printf("false");
+            }
             while (!(isValid)) 
             {
                 fflush(stdin); // fixes double printing the statement below
@@ -186,7 +210,7 @@ void play_game(int sock) {
                 status = read(sock, buffer, 255);
                 isValid = validate_input(buffer[0], deck);
             }
-
+            
             // converting user's input to a number representing a location in the array of cards
             cardLocation = char_to_num_convert(buffer[0]);
             printf("%d\n\n", cardLocation);
@@ -197,7 +221,10 @@ void play_game(int sock) {
             // flipping the card face up
             deck[cardLocation].isFlipped = true;
 
-            
+            bzero(buffer, 256); // clear buffer
+            status = write(sock, "11111", 255);
+            printf("\n\nwrote 1 to buffer\n\n");
+
             bzero(buffer, 256); // clear buffer
             strcpy(buffer, facedown_deck_to_buffer(deck, buffer)); // copy into buffer again
             strcat(buffer, "\nplease enter a selection a-->r\n");
@@ -238,8 +265,8 @@ void play_game(int sock) {
 
             //if both card's symbols match
             if (deck[cardLocation].symbol == deck[cardLocation2].symbol) {
-                status = write(sock, "\nMatch!\n", 255);
-                
+                // status = write(sock, "\nMatch!\n", 255);
+                strcpy(buffer, "\nMatch!\n");
                 //taking the cards out of play
                 deck[cardLocation].inPlay = false;
                 deck[cardLocation2].inPlay = false;
@@ -249,6 +276,7 @@ void play_game(int sock) {
 
                 // function checks to see if all cards are face up, if so game over
                 if (isGameOver(deck)) {
+                    strcat(buffer, "\n\nGame Over\n\nFinal Scores\n\nPlayer 1: %d\nPlayer 2: %d\n\n");
                     printf("\n\nGame Over\n\n");
                     printf("Final Scores\n\nPlayer 1: %d\nPlayer 2: %d\n\n", playerScores[0], playerScores[1]);
                     break;
@@ -257,6 +285,7 @@ void play_game(int sock) {
             }
             //If cards do not match, then we will be flipping cards back over
             else {
+                strcpy(buffer, "Try again\n");
                 printf("Try again\n");
                 deck[cardLocation].isFlipped = false;
                 deck[cardLocation2].isFlipped = false;
@@ -265,7 +294,7 @@ void play_game(int sock) {
             bzero(buffer, 256); // clear buffer
             sprintf(score1, "%d", playerScores[0]);
             sprintf(score2, "%d", playerScores[1]);
-            strcpy(buffer,"Scores\n\nPlayer 1: ");
+            strcat(buffer,"Scores\n\nPlayer 1: ");
             strcat(buffer, score1);
             strcat(buffer, "\nPlayer 2: ");
             strcat(buffer, score2);

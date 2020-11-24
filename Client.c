@@ -7,10 +7,11 @@
 #include<netinet/in.h>
 #include<netdb.h>
 #include <stdbool.h>
-#define PORTNUM  5012 /* the port number that the server is listening to*/
+#define PORTNUM  5016 /* the port number that the server is listening to*/
 #define DEFAULT_PROTOCOL 0  /*constant for default protocol*/
 void Play(int socketid);
 void take_card_input(int socketid);
+void read_socket(int socketid);
 
 void main()
 
@@ -95,34 +96,35 @@ void Play(int socketid)
     bool waiting = true;
     char buffer[256];
 
+
+    //take first answer
+    bzero(buffer, 256); // clear buffer
+    fgets(buffer, 255, stdin); // place input into buffer
+    printf("buffer: %s", buffer);
+
+    status = write(socketid, buffer, strlen(buffer));
+    bzero(buffer, 256);
+
+    if (status < 0)
+    {
+        printf("error while sending client message to server\n");
+    }
+
+    
+
+
     while (stillPlaying) // check if still playing. still playing should not adjust and game should continue without end
     {
         if (my_turn)
         {
-            //take first answer
-            bzero(buffer, 256); // clear buffer
-            fgets(buffer, 255, stdin); // place input into buffer
-            printf("buffer: %s", buffer);
-
-            status = write(socketid, buffer, strlen(buffer));
-            bzero(buffer, 256);
             
-            if (status < 0)
-            {
-                printf("error while sending client message to server\n");
-            }
+            /*
 
+                 read card layout at the moment
 
-            status = read(socketid, buffer, 255);
-            printf("%s \n", buffer);
-           
-            if (status < 0) {
-                perror("error while reading message from server");
-                exit(1);
-            }
-
-
-
+            */
+            read_socket(socketid);
+            read_socket(socketid);
             /* 
             
             pick card 1
@@ -139,8 +141,15 @@ void Play(int socketid)
 
 
             take_card_input(socketid);
+            /*
+            
+             print score after round
+            
+            */
+            read_socket(socketid);
 
 
+/*
             status = read(socketid, buffer, 255);
             printf("%s \n", buffer);
 
@@ -149,37 +158,61 @@ void Play(int socketid)
 
             status = read(socketid, buffer, 255);
             printf("%s \n", buffer);
+            */
 
         }
     }
 
 }
 
+void read_socket(int socketid)
+{
+    int status;
+    char buffer[256];
+    bzero(buffer, 256);
+    status = read(socketid, buffer, 255);
+    printf("\n%s \n", buffer);
 
+    if (status < 0)
+    {
+        perror("error while reading message from server");
+        exit(1);
+    }
+}
 
 void take_card_input(int socketid)
 {
     int status;
     char buffer[256];
+    
+    /*
+    
+     write card choice to server
 
+    */
     bzero(buffer, 256); // clear buffer
     fgets(buffer, 255, stdin); // place input into buffer
-    printf("buffer: %s", buffer);
-
+    //printf("\n%s\n", buffer);
     status = write(socketid, buffer, strlen(buffer));
     if (status < 0)
     {
         printf("error while sending client message to server\n");
     }
     bzero(buffer, 256);
+    /*
+    
+     read validation input
 
+    */
     status = read(socketid, buffer, 255);
-    printf("%s", buffer);
+    //printf("\n%s\n", buffer);
+
+    
     while (buffer[0] != '1')
     {
         bzero(buffer, 256); // clear buffer
         fgets(buffer, 255, stdin); // place input into buffer
-        printf("buffer: %s", buffer);
+        printf("\n%s\n", buffer);
 
         status = write(socketid, buffer, strlen(buffer));
         if (status < 0)
@@ -189,16 +222,22 @@ void take_card_input(int socketid)
         bzero(buffer, 256);
 
         status = read(socketid, buffer, 255);
-    }
 
+    }
+    /*
+    
+     read card layout
+    
+    */
+    bzero(buffer, 256); // clear buffer
     status = read(socketid, buffer, 255);
-    printf("%s \n", buffer);
+    printf("\n%s \n", buffer);
 
     if (status < 0) {
         perror("error while reading message from server");
         exit(1);
     }
-
+    
 
 }
 
