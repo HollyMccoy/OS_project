@@ -20,7 +20,7 @@
 #define MAX_PLAYERS 5
 #define TEST_MODE 0 // If TEST_MODE = 1 (True) Will Begin Testing TEST_MODE = 0 (False) Will Skip Testing
 // array of pointers to characters for symbols
-char* symbols[MAX_SYMBOLS] = { "!", "@", "#", "$", "^", "&", "*", "+", "~" };
+char symbols[MAX_SYMBOLS] = { '!', '@', '#', '$', '^', '&', '*', '+', '~' };
 #define PORTNUM  5016 /* the port number the server will listen to*/
 #define DEFAULT_PROTOCOL 0  /*constant for default protocol*/
 
@@ -30,7 +30,7 @@ char* symbols[MAX_SYMBOLS] = { "!", "@", "#", "$", "^", "&", "*", "+", "~" };
 //===================== Cards =======================//
 //structure definition
 struct card {
-    char* symbol; // this is the special symbol
+    char symbol; // this is the special symbol
     bool isFlipped; // if is flipped is true the card is symbol side up
     bool inPlay; // the card is out of play once it has already been matched 
 };
@@ -69,7 +69,24 @@ int main(int argc, char* argv[]) {
     char buffer[256];
     struct sockaddr_in serv_addr, cli_addr;
     int status, pid;
+    int shmid;
+    char* shmadd;
+    shmadd = (char*)0;
 
+    // shared memory startup
+    if ((shmid = shmget(SHMKEY, sizeof(int), IPC_CREAT | 0666)) < 0)
+    {
+        perror("shmget");
+        exit(1);
+    }
+    printf("Shared memory creation was successful.");
+
+    if ((game_data = (shared_mem*)shmat(shmid, shmadd, 0)) == (shared_mem*)-1)
+    {
+        perror("shmat");
+        exit(0);
+    }
+    printf("Shared memory creation was successful.\n");
     /* First call to socket() function */
     sockfd = socket(AF_INET, SOCK_STREAM, DEFAULT_PROTOCOL);
 
@@ -78,11 +95,11 @@ int main(int argc, char* argv[]) {
         perror("ERROR opening socket");
         exit(1);
     }
-
+    printf("\n1\n");
     /* Initialize socket structure */
     bzero((char*)&serv_addr, sizeof(serv_addr));
     portno = PORTNUM;
-
+    printf("\n2\n");
     serv_addr.sin_family = AF_INET;
     serv_addr.sin_addr.s_addr = INADDR_ANY;
     serv_addr.sin_port = htons(portno);
@@ -100,12 +117,12 @@ int main(int argc, char* argv[]) {
 
     listen(sockfd, 2);
     clilen = sizeof(cli_addr);
-
+    printf("\n3\n");
     srand(time(0));
     // "deck" is a 'struct card' or 'Card' type array
-    populate_deck(game_data->deck); // populate deck
+    populate_deck(); // populate deck
     printf("Deck of cards created");
-    print_deck_faceup(game_data->deck); // print
+    print_deck_faceup(); // print
 
     while (1) {
         newsockfd = accept(sockfd, (struct sockaddr*) & cli_addr, &clilen);
@@ -134,6 +151,11 @@ int main(int argc, char* argv[]) {
         }
 
     } /* end of while */
+    if ((shmctl(shmid, IPC_RMID, (struct shmid_ds*) 0)) == -1)
+    {
+        perror("shmctl");
+        exit(-1);
+    }
 }
 
 
@@ -376,7 +398,7 @@ char* facedown_deck_to_buffer( char buffer[]) {
     for (i = 0; i < MAX_CARDS; i++, j++) {
         if (game_data->deck[i].isFlipped) {
             buffer[j++] = ' ';
-            buffer[j++] = *game_data->deck[i].symbol;
+            buffer[j++] = game_data->deck[i].symbol;
             buffer[j++] = ' ';
             buffer[j] = ' ';
         }
@@ -403,7 +425,7 @@ void print_deck_faceup() {
     int i;
     printf("Solution:\n               ");
     for (i = 0; i < MAX_CARDS; i++) {
-        printf("[%s] ", game_data->deck[i].symbol);
+        printf("[%s] ", game_data->deck[i]->symbol);
 
         if ((i == 5) || (i == 11)) {
             printf("\n               ");
@@ -420,7 +442,7 @@ char* faceup_deck_to_buffer( char buffer[]) {
     buffer[i++] = '\t';
     for (j = 0; j < MAX_CARDS; j++, i++) {
         buffer[i++] = '[';
-        buffer[i++] = *game_data->(deck[j]).symbol;
+        buffer[i++] = game_data->deck[j].symbol;
         buffer[i++] = ']';
         buffer[i] = ' ';
 
