@@ -376,7 +376,7 @@ char* facedown_deck_to_buffer( char buffer[]) {
     for (i = 0; i < MAX_CARDS; i++, j++) {
         if (game_data->deck[i].isFlipped) {
             buffer[j++] = ' ';
-            buffer[j++] = game_data->*deck[i].symbol;
+            buffer[j++] = *game_data->deck[i].symbol;
             buffer[j++] = ' ';
             buffer[j] = ' ';
         }
@@ -420,7 +420,7 @@ char* faceup_deck_to_buffer( char buffer[]) {
     buffer[i++] = '\t';
     for (j = 0; j < MAX_CARDS; j++, i++) {
         buffer[i++] = '[';
-        buffer[i++] = game_data->(*deck[j]).symbol;
+        buffer[i++] = *game_data->(deck[j]).symbol;
         buffer[i++] = ']';
         buffer[i] = ' ';
 
