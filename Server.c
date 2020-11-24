@@ -13,11 +13,12 @@
 #include<sys/ipc.h>
 #include<sys/shm.h>
 #include<unistd.h>
+
 #define SHMKEY ((key_t) 5632)
 #define MAX_CARDS 18
 #define MAX_SYMBOLS 9
 #define MAX_BUFFER 256
-#define MAX_PLAYERS 5
+#define MAX_PLAYERS 2
 #define TEST_MODE 0 // If TEST_MODE = 1 (True) Will Begin Testing TEST_MODE = 0 (False) Will Skip Testing
 // array of pointers to characters for symbols
 char symbols[MAX_SYMBOLS] = { '!', '@', '#', '$', '^', '&', '*', '+', '~' };
@@ -29,17 +30,18 @@ char symbols[MAX_SYMBOLS] = { '!', '@', '#', '$', '^', '&', '*', '+', '~' };
 
 //===================== Cards =======================//
 //structure definition
-struct card {
+typedef struct {
     char symbol; // this is the special symbol
     bool isFlipped; // if is flipped is true the card is symbol side up
     bool inPlay; // the card is out of play once it has already been matched 
-};
-typedef struct card Card;
+}Card;
+
 
 
 
 typedef struct
 {
+    int player_sock[MAX_PLAYERS];
     char buffer[255];
     Card deck[MAX_CARDS];
 } shared_mem;
@@ -49,9 +51,9 @@ shared_mem* game_data;
 //===================== Prototypes / Globals =======================//
 void populate_deck();
 void print_deck_faceup(); //Replaced by char * faceup_deck_to_buffer
-char* faceup_deck_to_buffer( char buffer[]);
+char* faceup_deck_to_buffer(char buffer[]);
 void print_deck(); //Replaced by char * facedown_deck_to_buffer
-char* facedown_deck_to_buffer( char buffer[]);
+char* facedown_deck_to_buffer(char buffer[]);
 void display_welcome_message(); //Replaced in main by printf statement
 void shuffle_deck();
 int get_random_num(int numBeg, int numEnd);
@@ -70,6 +72,7 @@ int main(int argc, char* argv[]) {
     struct sockaddr_in serv_addr, cli_addr;
     int status, pid;
     int shmid;
+    int i = 0;
     char* shmadd;
     shmadd = (char*)0;
 
@@ -79,14 +82,14 @@ int main(int argc, char* argv[]) {
         perror("shmget");
         exit(1);
     }
-    printf("Shared memory creation was successful.");
+    //printf("Shared memory creation was successful.");
 
     if ((game_data = (shared_mem*)shmat(shmid, shmadd, 0)) == (shared_mem*)-1)
     {
         perror("shmat");
         exit(0);
     }
-    printf("Shared memory creation was successful.\n");
+    //printf("Shared memory creation was successful.\n");
     /* First call to socket() function */
     sockfd = socket(AF_INET, SOCK_STREAM, DEFAULT_PROTOCOL);
 
@@ -95,11 +98,11 @@ int main(int argc, char* argv[]) {
         perror("ERROR opening socket");
         exit(1);
     }
-    printf("\n1\n");
+
     /* Initialize socket structure */
     bzero((char*)&serv_addr, sizeof(serv_addr));
     portno = PORTNUM;
-    printf("\n2\n");
+
     serv_addr.sin_family = AF_INET;
     serv_addr.sin_addr.s_addr = INADDR_ANY;
     serv_addr.sin_port = htons(portno);
@@ -117,16 +120,17 @@ int main(int argc, char* argv[]) {
 
     listen(sockfd, 2);
     clilen = sizeof(cli_addr);
-    printf("\n3\n");
+
     srand(time(0));
     // "deck" is a 'struct card' or 'Card' type array
     populate_deck(); // populate deck
-    printf("Deck of cards created");
+    //printf("Deck of cards created");
     print_deck_faceup(); // print
 
-    while (1) {
+    while (i < MAX_PLAYERS) {
         newsockfd = accept(sockfd, (struct sockaddr*) & cli_addr, &clilen);
-
+        game_data->player_sock[i] = newsockfd;
+        i++;
         if (newsockfd < 0) {
             perror("ERROR on accept");
             exit(1);
@@ -156,6 +160,7 @@ int main(int argc, char* argv[]) {
         perror("shmctl");
         exit(-1);
     }
+
 }
 
 
@@ -186,43 +191,44 @@ void play_game(int sock) {
         exit(1);
     }
 
-   
-   
+
+
     //------------------------------- Game Loop Begins ------------------------------------
     // this game mode is for when the players take turns
+
     if (isTakeTurns) {
         while (stillPlaying) {
             /*
-            
+
              print player's turn
-            
+
             */
-            
+
             //print_deck(deck);
             /*
-            
+
              write card set up and player turn to clients
-            
+
             */
-            printf("player %d turn: ", (playerTurn + 1));
+            printf("player %d turn: \n", (playerTurn + 1));
             sprintf(turn, "%d", (playerTurn + 1));
-           
+
             bzero(buffer, 256); // clear buffer
             strcpy(buffer, "\nPlayer ");
             strcat(buffer, turn);
             strcat(buffer, "'s turn: \n");
             status = write(sock, buffer, 255);
             bzero(buffer, 256);
-            strcpy(buffer, facedown_deck_to_buffer( buffer)); // copy into buffer again
+            strcpy(buffer, facedown_deck_to_buffer(buffer)); // copy into buffer again
             strcat(buffer, "\nplease enter a selection a-->r\n");
             status = write(sock, buffer, 255);
-            
-            printf("%s", buffer);
+
+            //printf("%s", buffer);
             // userSelection = 'b';
             bzero(buffer, 256);
 
 
-            if (status < 0) 
+            if (status < 0)
             {
                 perror("ERROR writing to socket");
                 exit(1);
@@ -230,28 +236,28 @@ void play_game(int sock) {
 
 
             status = read(sock, buffer, 255);
-            printf("first read: %s", buffer);
+            //printf("%s", buffer);
             // checking user input
             bool isValid = validate_input(buffer[0]);
             if (isValid)
             {
-                printf("true");
+                //printf("true");
             }
             else
             {
-                printf("false");
+                //printf("false");
             }
-            while (!(isValid)) 
+            while (!(isValid))
             {
                 fflush(stdin); // fixes double printing the statement below
                 status = write(sock, buffer, 255);
                 status = read(sock, buffer, 255);
                 isValid = validate_input(buffer[0]);
             }
-            
+
             // converting user's input to a number representing a location in the array of cards
             cardLocation = char_to_num_convert(buffer[0]);
-            printf("%d\n\n", cardLocation);
+            //printf("%d\n\n", cardLocation);
 
             // locating card in array
             firstCard = game_data->deck[cardLocation];
@@ -261,24 +267,24 @@ void play_game(int sock) {
 
             bzero(buffer, 256); // clear buffer
             status = write(sock, "11111", 255);
-            printf("\n\nwrote 1 to buffer\n\n");
+            //printf("\n\nwrote 1 to buffer\n\n");
 
             bzero(buffer, 256); // clear buffer
             strcpy(buffer, facedown_deck_to_buffer(buffer)); // copy into buffer again
-            strcat(buffer, "\nplease enter a selection a-->r\n");
+            strcat(buffer, "\nplease enter a selection AH a-->r\n");
             status = write(sock, buffer, 255);
-            printf("write: %s",buffer);
-           
+            printf("%s", buffer);
+
             /*
 
             take in the second card
 
             */
             status = read(sock, buffer, 255);
-            printf("read 2: %s", buffer);
+            //printf("\n%s\n", buffer);
             // checking user input
             isValid = validate_input(buffer[0]);
-            while (!(isValid)) 
+            while (!(isValid))
             {
                 status = write(sock, "wrong", 255);
                 status = read(sock, buffer, 255);
@@ -287,7 +293,7 @@ void play_game(int sock) {
             status = write(sock, "1", 255);
             // converting user's input to a number representing a location in the array of cards
             cardLocation2 = char_to_num_convert(buffer[0]);
-            printf("%d\n\n", cardLocation2);
+            //printf("%d\n\n", cardLocation2);
 
             // locating card in array
             secondCard = game_data->deck[cardLocation2];
@@ -298,7 +304,7 @@ void play_game(int sock) {
             //reveal card on board
             //print_deck(deck);
             bzero(buffer, 256); // clear buffer
-            strcpy(buffer, facedown_deck_to_buffer( buffer)); // copy into buffer again
+            strcpy(buffer, facedown_deck_to_buffer(buffer)); // copy into buffer again
             status = write(sock, buffer, 255);
 
             //if both card's symbols match
@@ -324,7 +330,7 @@ void play_game(int sock) {
             //If cards do not match, then we will be flipping cards back over
             else {
                 strcpy(buffer, "Try again\n");
-                printf("Try again\n");
+                //printf("Try again\n");
                 game_data->deck[cardLocation].isFlipped = false;
                 game_data->deck[cardLocation2].isFlipped = false;
             }
@@ -332,13 +338,13 @@ void play_game(int sock) {
             bzero(buffer, 256); // clear buffer
             sprintf(score1, "%d", playerScores[0]);
             sprintf(score2, "%d", playerScores[1]);
-            strcat(buffer,"Scores\n\nPlayer 1: ");
+            strcat(buffer, "Scores\n\nPlayer 1: ");
             strcat(buffer, score1);
             strcat(buffer, "\nPlayer 2: ");
             strcat(buffer, score2);
             strcat(buffer, "\n\n");
-            
-            
+
+
             status = write(sock, buffer, 255);
 
             //Rotate player turn
@@ -372,7 +378,7 @@ void print_deck() {
     printf("               ");
     for (i = 0; i < MAX_CARDS; i++) {
         if (game_data->deck[i].isFlipped) {
-            printf(" %s  ", game_data->deck[i].symbol);
+            printf(" %c  ", game_data->deck[i].symbol);
         }
         else {
             printf("[%c] ", letter);
@@ -388,7 +394,7 @@ void print_deck() {
 
 //Populates buffer deck of cards symbol-side down, unless the card's isFlipped
 //is true; returns pointer to buffer for use with print statements and message sending
-char* facedown_deck_to_buffer( char buffer[]) {
+char* facedown_deck_to_buffer(char buffer[]) {
     //To-do: add error checks for buffer size (more important for non-deck buffer functions)
     int j = 0;
     int i;
@@ -425,7 +431,7 @@ void print_deck_faceup() {
     int i;
     printf("Solution:\n               ");
     for (i = 0; i < MAX_CARDS; i++) {
-        printf("[%s] ", game_data->deck[i].symbol);
+        printf("[%c] ", game_data->deck[i].symbol);
 
         if ((i == 5) || (i == 11)) {
             printf("\n               ");
@@ -436,7 +442,7 @@ void print_deck_faceup() {
 
 //Populates buffer with faceup deck; returns pointer to buffer for
 //use with print statements and message sending
-char* faceup_deck_to_buffer( char buffer[]) {
+char* faceup_deck_to_buffer(char buffer[]) {
     //To-do: add error checks for buffer size (more important for non-deck buffer functions)
     int i = 0, j;
     buffer[i++] = '\t';
@@ -499,7 +505,7 @@ bool validate_input(char userInput) {
 
 // Iterates through deck, if there is a card still face down we return false,
 // if all cards are face up then we return true and the game is over
-bool isGameOver() 
+bool isGameOver()
 {
     int i;
     for (i = 0; i < MAX_CARDS; ++i) {
