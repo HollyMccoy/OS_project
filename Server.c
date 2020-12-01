@@ -352,6 +352,75 @@ void play_game(int sock) {
                 playerTurn = 0;
         }
     }
+    else { //Non-turn mode
+        int cardsSelected = 0; //Number of cards currently selected by client
+        int currPlayer; //The player number for the given client connection
+        //Initialized elsewhere with: currPlayer = numOfPlayers++;
+        /*numOfPlayers should be placed in shared memory and track the number of connected players
+         *Also, only allow new client game connections while numOfPlayers < 5*/
+        bool isValid = false;
+        while(true){
+            if (!stillPlaying){
+                if (false){ //If "play another game" prompt leads to affirmative client response
+                    stillPlaying = true;
+                    //Reset game conditions
+                    //Will need to alter code to offer ability to switch game modes
+                    //==> Could alter "void play_game(int sock)" to a function that return a bool
+                }
+                else //Client response was to end game
+                    break;
+            }
+            else if (isGameOver()) {
+                //Create game over buffer with final scores
+                //Also, include prompt to play another game
+                stillPlaying = false;
+            }
+            else if(false){ //State: Game start
+                //Ensure at least 2 clients connected and that all expected players have entered "ready"
+                //Possible buffer message: "Waiting for other players..."
+                //Possible issues on client side code: what do they write back to the above message to continue?
+                //==> Could use a non-user message as an automatic client response, but this could lead to many quick print statements
+                //==> Or, could simply add to the above message "...Press Enter to refresh."
+
+                continue; //stub
+            }
+            else if (cardsSelected == 0) {
+                //Create buffer that prompts for card 1
+                cardsSelected++;
+            }
+            else if (cardsSelected == 1){
+                isValid = validate_input(buffer[0]);
+                if (!isValid){
+                    //Create buffer that re-prompts for card 1
+                }
+                else { //First card is valid
+                    //Create buffer that prompts for card 2
+                    cardsSelected++;
+                }
+            }
+            else if (cardsSelected == 2){
+                isValid = validate_input(buffer[0]);
+                if (!isValid){
+                    //Create buffer that re-prompts for card 2
+                }
+                else { //Second card is valid
+                    //Check for match and create corresponding buffer message
+                    /*If cards match, then updateScores(currPlayer);
+                     *updateScores function represents critical section*/
+                    cardsSelected == 0;
+                }  
+            }
+            else {
+                /* Unexpected State: Print state information to server console and
+                 * inform client of the error (include program end code)*/
+                buffer[0] = '0'; //Code to end client game loop; concatenate rest of message
+                status = write(sock, buffer, 255); //Bad message
+                break;
+            }
+            status = write(sock, buffer, 255);
+            status = read(sock, buffer, 255);
+        }
+    }
 
 
 
