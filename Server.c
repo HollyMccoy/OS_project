@@ -13,7 +13,7 @@
 #include<sys/ipc.h>
 #include<sys/shm.h>
 #include<unistd.h>
-
+#include<pthread.h>
 #define SHMKEY ((key_t) 5632)
 #define MAX_CARDS 18
 #define MAX_SYMBOLS 9
@@ -24,7 +24,7 @@
 char symbols[MAX_SYMBOLS] = { '!', '@', '#', '$', '^', '&', '*', '+', '~' };
 #define PORTNUM  5016 /* the port number the server will listen to*/
 #define DEFAULT_PROTOCOL 0  /*constant for default protocol*/
-
+pthread_mutex_tmutex;
 
 
 
@@ -43,14 +43,16 @@ typedef struct
 {
     //shared players, set by first person
     // number of players currently connected
-    int playerScores[MAX_PLAYERS] = { 0 };
+    int playerScores[MAX_PLAYERS]; // = { 0 }
     int player_sock[MAX_PLAYERS];
-    int expPlayers = 0; //Number of players expected to join
-    int numOfPlayers = 0; //Number of players currently connected (Note: need to delete declaration in play game function) 
+    int expPlayers=2; // = 0; Number of players expected to join
+    int numOfPlayers=0; // ; Number of players currently connected (Note: need to delete declaration in play game function) 
     char buffer[255];
     Card deck[MAX_CARDS];
 } shared_mem;
 shared_mem* game_data;
+
+
 
 
 //===================== Prototypes / Globals =======================//
@@ -80,7 +82,7 @@ int main(int argc, char* argv[]) {
     int i = 0;
     char* shmadd;
     shmadd = (char*)0;
-
+    pthread_mutex_init(&mutex, NULL);
     // shared memory startup
     if ((shmid = shmget(SHMKEY, sizeof(int), IPC_CREAT | 0666)) < 0)
     {
@@ -149,6 +151,9 @@ int main(int argc, char* argv[]) {
             exit(1);
         }
 
+        pthread_mutex_lock(&mutex);
+        game_data->numOfPlayers++;
+        pthread_mutex_unlock(&mutex);
         if (pid == 0) {
             /* This is the client process */
             close(sockfd);
@@ -172,19 +177,18 @@ int main(int argc, char* argv[]) {
 void play_game(int sock) {
     int status;
     char buffer[256];
-    char score1[12];
-    char score2[12];
+    char tempString[12];
     char turn[12];
     bzero(buffer, 256); // empty buffer
     char input;
     int cardLocation, cardLocation2;
     Card firstCard, secondCard; //these will be compared
     bool stillPlaying = true;
-
+    bool continuePlaying = false;
     bool isTakeTurns = false;
     int playerTurn = 0; //Tracks which player's turn it is; starts at 0
-    int numOfPlayers = 2;
     
+
 
     //strcpy(buffer, facedown_deck_to_buffer(deck, buffer)); // copy result of facedown_deck_to_buffer into buffer
     //status = write(sock, buffer, 210); // send buffer to client
@@ -225,7 +229,6 @@ void play_game(int sock) {
             status = write(sock, buffer, 255);
 
             //printf("%s", buffer);
-            // userSelection = 'b';
             bzero(buffer, 256);
 
 
@@ -235,7 +238,7 @@ void play_game(int sock) {
                 exit(1);
             }
 
-
+            // userSelection = 'b';
             status = read(sock, buffer, 255);
             //printf("%s", buffer);
             // checking user input
@@ -272,7 +275,7 @@ void play_game(int sock) {
 
             bzero(buffer, 256); // clear buffer
             strcpy(buffer, facedown_deck_to_buffer(buffer)); // copy into buffer again
-            strcat(buffer, "\nplease enter a selection AH a-->r\n");
+            strcat(buffer, "\nplease enter a selection a-->r\n");
             status = write(sock, buffer, 255);
             printf("%s", buffer);
 
@@ -335,12 +338,12 @@ void play_game(int sock) {
             }
             printf("Scores\n\nPlayer 1: %d\nPlayer 2: %d\n\n", game_data->playerScores[0], game_data->playerScores[1]);
             bzero(buffer, 256); // clear buffer
-            sprintf(score1, "%d", game_data->playerScores[0]);
-            sprintf(score2, "%d", game_data->playerScores[1]);
+            sprintf(tempString, "%d", game_data->playerScores[0]);
             strcat(buffer, "Scores\n\nPlayer 1: ");
-            strcat(buffer, score1);
+            strcat(buffer, tempString);
+            sprintf(tempString, "%d", game_data->playerScores[1]);
             strcat(buffer, "\nPlayer 2: ");
-            strcat(buffer, score2);
+            strcat(buffer, tempString);
             strcat(buffer, "\n\n");
 
 
@@ -358,10 +361,11 @@ void play_game(int sock) {
         /*numOfPlayers should be placed in shared memory and track the number of connected players
          *Also, only allow new client game connections while numOfPlayers < 5*/
         bool isValid = false;
-        while(true){
-            if (!stillPlaying){
-                if (false){ //If "play another game" prompt leads to affirmative client response
+        while (true) {
+            if (!stillPlaying) {
+                if (continuePlaying) { //If "play another game" prompt leads to affirmative client response then continuePlaying will have changed to true 
                     stillPlaying = true;
+                    continuePlaying = false;
                     //Reset game conditions
                     //Will need to alter code to offer ability to switch game modes
                     //==> Could alter "void play_game(int sock)" to a function that return a bool
@@ -373,14 +377,30 @@ void play_game(int sock) {
                 //Create game over buffer with final scores
                 //Also, include prompt to play another game
                 stillPlaying = false;
+                strcpy(buffer, "\n----GAME OVER----\nFinal score: \n");
+                sprintf(tempString, "%d", game_data->playerScores[0]);
+                strcat(buffer, "Scores\n\nPlayer 1: ");
+                strcat(buffer, tempString);
+                sprintf(tempString, "%d", game_data->playerScores[1]);
+                strcat(buffer, "\nPlayer 2: ");
+                strcat(buffer, tempString);
+                strcat(buffer, "\n\n");
+                strcat(buffer, "Would you like to play again?\n if so, enter \"yes\"\n\n");
+                // write buffer, receive response, change continuePlaying to true if continue playing is selected or leave continuePlaying as is 
             }
-            else if(false){ //State: Game start
+            else if (false) { //State: Game start
                 //Ensure at least 2 clients connected and that all expected players have entered "ready"
-                //Possible buffer message: "Waiting for other players..."
+                
                 //Possible issues on client side code: what do they write back to the above message to continue?
                 //==> Could use a non-user message as an automatic client response, but this could lead to many quick print statements
                 //==> Or, could simply add to the above message "...Press Enter to refresh."
-
+                //==> what if we remove the idea of a ready message and just dont send out the deck of cards till all players have connected?
+                // message to buffer example: "Waiting on other players...(3/5) players have joined..."
+                strcpy(buffer, "\nWaiting on other players...");
+                sprintf(tempString, "(%d/", game_data->numOfPlayers);
+                strcat(buffer, tempString);
+                sprintf(tempString, "%d) players have joined...\n\n", game_data->expPlayers);
+                strcat(buffer, tempString);
                 continue; //stub
             }
             else if (cardsSelected == 0) {
@@ -390,27 +410,57 @@ void play_game(int sock) {
                 strcpy(buffer, facedown_deck_to_buffer(buffer)); // copy into buffer again
                 strcat(buffer, "\nPlease enter first selection a-->r\n");
             }
-            else if (cardsSelected == 1){
+            else if (cardsSelected == 1) {
                 isValid = validate_input(buffer[0]);
-                if (!isValid){
-                    //Create buffer that re-prompts for card 1
+                if (!isValid) {
+                    bzero(buffer, 256); // clear buffer
+                    strcpy(buffer, "You have entered an invalid response please try again");
+                    strcat(buffer, facedown_deck_to_buffer(buffer)); // copy into buffer again
+                    strcat(buffer, "\nPlease enter first selection a-->r\n");
                 }
                 else { //First card is valid
                     //Create buffer that prompts for card 2
                     cardsSelected++;
+                    bzero(buffer, 256); // clear buffer
+                    strcpy(buffer, facedown_deck_to_buffer(buffer)); // copy into buffer again
+                    strcat(buffer, "\nPlease enter second selection a-->r\n");
                 }
             }
-            else if (cardsSelected == 2){
+            else if (cardsSelected == 2) {
                 isValid = validate_input(buffer[0]);
-                if (!isValid){
+                if (!isValid) {
                     //Create buffer that re-prompts for card 2
+                    bzero(buffer, 256); // clear buffer
+                    strcpy(buffer, "You have entered an invalid response please try again");
+                    strcat(buffer, facedown_deck_to_buffer(buffer)); // copy into buffer again
+                    strcat(buffer, "\nPlease enter second selection a-->r\n");
                 }
                 else { //Second card is valid
                     //Check for match and create corresponding buffer message
                     /*If cards match, then updateScores(currPlayer);
                      *updateScores function represents critical section*/
+                    pthread_mutex_lock(&mutex);
+                    if (game_data->deck[cardLocation].symbol == game_data->deck[cardLocation2].symbol) {
+                        // status = write(sock, "\nMatch!\n", 255);
+                        strcpy(buffer, "\nMatch!\n");
+                        //taking the cards out of play
+                        game_data->deck[cardLocation].inPlay = false;
+                        game_data->deck[cardLocation2].inPlay = false;
+
+                        //Adding point to player
+                        game_data->playerScores[playerTurn]++;
+
+                    }
+                    //If cards do not match, then we will be flipping cards back over
+                    else {
+                        strcpy(buffer, "Try again\n");
+                        //printf("Try again\n");
+                        game_data->deck[cardLocation].isFlipped = false;
+                        game_data->deck[cardLocation2].isFlipped = false;
+                    }
+                    pthread_mutex_unlock(&mutex);
                     cardsSelected == 0;
-                }  
+                }
             }
             else {
                 /* Unexpected State: Print state information to server console and
