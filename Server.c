@@ -41,12 +41,12 @@ typedef struct {
 
 typedef struct
 {
+    //shared players, set by first person
+    // number of players currently connected
+    int playerScores[MAX_PLAYERS] = { 0 };
     int player_sock[MAX_PLAYERS];
     char buffer[255];
     Card deck[MAX_CARDS];
-    //int playerScores[5];
-    //int expPlayers; //Number of expected players
-    //int numOfPlayers; //Number of players currently connected
 } shared_mem;
 shared_mem* game_data;
 
@@ -179,10 +179,10 @@ void play_game(int sock) {
     Card firstCard, secondCard; //these will be compared
     bool stillPlaying = true;
 
-    bool isTakeTurns = false;
+    bool isTakeTurns = true;
     int playerTurn = 0; //Tracks which player's turn it is; starts at 0
     int numOfPlayers = 2;
-    int playerScores[MAX_PLAYERS] = { 0 }; //Tracks each player's score
+    
 
     //strcpy(buffer, facedown_deck_to_buffer(deck, buffer)); // copy result of facedown_deck_to_buffer into buffer
     //status = write(sock, buffer, 210); // send buffer to client
@@ -202,16 +202,12 @@ void play_game(int sock) {
     if (isTakeTurns) {
         while (stillPlaying) {
             /*
-
              print player's turn
-
             */
 
             //print_deck(deck);
             /*
-
              write card set up and player turn to clients
-
             */
             printf("player %d turn: \n", (playerTurn + 1));
             sprintf(turn, "%d", (playerTurn + 1));
@@ -279,9 +275,7 @@ void play_game(int sock) {
             printf("%s", buffer);
 
             /*
-
             take in the second card
-
             */
             status = read(sock, buffer, 255);
             //printf("\n%s\n", buffer);
@@ -319,13 +313,13 @@ void play_game(int sock) {
                 game_data->deck[cardLocation2].inPlay = false;
 
                 //Adding point to player
-                playerScores[playerTurn]++;
+                game_data->playerScores[playerTurn]++;
 
                 // function checks to see if all cards are face up, if so game over
                 if (isGameOver()) {
                     strcat(buffer, "\n\nGame Over\n\nFinal Scores\n\nPlayer 1: %d\nPlayer 2: %d\n\n");
                     printf("\n\nGame Over\n\n");
-                    printf("Final Scores\n\nPlayer 1: %d\nPlayer 2: %d\n\n", playerScores[0], playerScores[1]);
+                    printf("Final Scores\n\nPlayer 1: %d\nPlayer 2: %d\n\n", game_data->playerScores[0], game_data->playerScores[1]);
                     break;
                 }
 
@@ -337,10 +331,10 @@ void play_game(int sock) {
                 game_data->deck[cardLocation].isFlipped = false;
                 game_data->deck[cardLocation2].isFlipped = false;
             }
-            printf("Scores\n\nPlayer 1: %d\nPlayer 2: %d\n\n", playerScores[0], playerScores[1]);
+            printf("Scores\n\nPlayer 1: %d\nPlayer 2: %d\n\n", game_data->playerScores[0], game_data->playerScores[1]);
             bzero(buffer, 256); // clear buffer
-            sprintf(score1, "%d", playerScores[0]);
-            sprintf(score2, "%d", playerScores[1]);
+            sprintf(score1, "%d", game_data->playerScores[0]);
+            sprintf(score2, "%d", game_data->playerScores[1]);
             strcat(buffer, "Scores\n\nPlayer 1: ");
             strcat(buffer, score1);
             strcat(buffer, "\nPlayer 2: ");
@@ -362,9 +356,9 @@ void play_game(int sock) {
         /*numOfPlayers should be placed in shared memory and track the number of connected players
          *Also, only allow new client game connections while numOfPlayers < 5*/
         bool isValid = false;
-        while(true){
-            if (!stillPlaying){
-                if (false){ //If "play another game" prompt leads to affirmative client response
+        while (true) {
+            if (!stillPlaying) {
+                if (false) { //If "play another game" prompt leads to affirmative client response
                     stillPlaying = true;
                     //Reset game conditions
                     //Will need to alter code to offer ability to switch game modes
@@ -378,7 +372,7 @@ void play_game(int sock) {
                 //Also, include prompt to play another game
                 stillPlaying = false;
             }
-            else if(false){ //State: Game start
+            else if (false) { //State: Game start
                 //Ensure at least 2 clients connected and that all expected players have entered "ready"
                 //Possible buffer message: "Waiting for other players..."
                 //Possible issues on client side code: what do they write back to the above message to continue?
@@ -390,13 +384,10 @@ void play_game(int sock) {
             else if (cardsSelected == 0) {
                 //Create buffer that prompts for card 1
                 cardsSelected++;
-                bzero(buffer, 256); // clear buffer
-                strcpy(buffer, facedown_deck_to_buffer(buffer)); // copy into buffer again
-                strcat(buffer, "\nPlease enter first selection a-->r\n");
             }
-            else if (cardsSelected == 1){
+            else if (cardsSelected == 1) {
                 isValid = validate_input(buffer[0]);
-                if (!isValid){
+                if (!isValid) {
                     //Create buffer that re-prompts for card 1
                 }
                 else { //First card is valid
@@ -404,9 +395,9 @@ void play_game(int sock) {
                     cardsSelected++;
                 }
             }
-            else if (cardsSelected == 2){
+            else if (cardsSelected == 2) {
                 isValid = validate_input(buffer[0]);
-                if (!isValid){
+                if (!isValid) {
                     //Create buffer that re-prompts for card 2
                 }
                 else { //Second card is valid
@@ -414,7 +405,7 @@ void play_game(int sock) {
                     /*If cards match, then updateScores(currPlayer);
                      *updateScores function represents critical section*/
                     cardsSelected == 0;
-                }  
+                }
             }
             else {
                 /* Unexpected State: Print state information to server console and
