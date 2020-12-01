@@ -44,6 +44,9 @@ typedef struct
     int player_sock[MAX_PLAYERS];
     char buffer[255];
     Card deck[MAX_CARDS];
+    //int playerScores[5];
+    //int expPlayers; //Number of expected players
+    //int numOfPlayers; //Number of players currently connected
 } shared_mem;
 shared_mem* game_data;
 
@@ -176,7 +179,7 @@ void play_game(int sock) {
     Card firstCard, secondCard; //these will be compared
     bool stillPlaying = true;
 
-    bool isTakeTurns = true;
+    bool isTakeTurns = false;
     int playerTurn = 0; //Tracks which player's turn it is; starts at 0
     int numOfPlayers = 2;
     int playerScores[MAX_PLAYERS] = { 0 }; //Tracks each player's score
@@ -387,6 +390,9 @@ void play_game(int sock) {
             else if (cardsSelected == 0) {
                 //Create buffer that prompts for card 1
                 cardsSelected++;
+                bzero(buffer, 256); // clear buffer
+                strcpy(buffer, facedown_deck_to_buffer(buffer)); // copy into buffer again
+                strcat(buffer, "\nPlease enter first selection a-->r\n");
             }
             else if (cardsSelected == 1){
                 isValid = validate_input(buffer[0]);

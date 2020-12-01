@@ -117,36 +117,50 @@ void Play(int socketid)
     {
         if (my_turn)
         {
-            
+            int status;
+            char buffer[256];
+            bzero(buffer, 256);
+            status = read(socketid, buffer, 255);
+            printf("\n%s \n", buffer);
+
+            if (status < 0)
+            {
+                perror("error while reading message from server");
+                exit(1);
+            }
+
+            /*State checking and management code here*/
+
+            bzero(buffer, 256); // clear buffer
+            fgets(buffer, 255, stdin); // place input into buffer
+            //printf("\n%s\n", buffer);
+            status = write(socketid, buffer, strlen(buffer));
+            if (status < 0)
+            {
+                printf("error while sending client message to server\n");
+            }
+
+            //Comment out the code below
             /*
+            status = write(socketid, buffer, 255);
 
-                 read card layout at the moment
-
-            */
+            //read card layout at the moment
+            
             read_socket(socketid);
             read_socket(socketid);
-            /* 
             
-            pick card 1
+            //pick card 1
             
-            */
-
             take_card_input(socketid);
 
-            /*
+            //pick card 2
             
-            pick card 2
-            
-            */
-
-
             take_card_input(socketid);
-            /*
             
-             print score after round
+            //print score after round
             
-            */
             read_socket(socketid);
+            */
 
 
 /*
