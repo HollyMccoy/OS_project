@@ -45,6 +45,8 @@ typedef struct
     // number of players currently connected
     int playerScores[MAX_PLAYERS] = { 0 };
     int player_sock[MAX_PLAYERS];
+    int expPlayers = 0; //Number of players expected to join
+    int numOfPlayers = 0; //Number of players currently connected (Note: need to delete declaration in play game function) 
     char buffer[255];
     Card deck[MAX_CARDS];
 } shared_mem;
@@ -179,7 +181,7 @@ void play_game(int sock) {
     Card firstCard, secondCard; //these will be compared
     bool stillPlaying = true;
 
-    bool isTakeTurns = true;
+    bool isTakeTurns = false;
     int playerTurn = 0; //Tracks which player's turn it is; starts at 0
     int numOfPlayers = 2;
     
@@ -356,9 +358,9 @@ void play_game(int sock) {
         /*numOfPlayers should be placed in shared memory and track the number of connected players
          *Also, only allow new client game connections while numOfPlayers < 5*/
         bool isValid = false;
-        while (true) {
-            if (!stillPlaying) {
-                if (false) { //If "play another game" prompt leads to affirmative client response
+        while(true){
+            if (!stillPlaying){
+                if (false){ //If "play another game" prompt leads to affirmative client response
                     stillPlaying = true;
                     //Reset game conditions
                     //Will need to alter code to offer ability to switch game modes
@@ -372,7 +374,7 @@ void play_game(int sock) {
                 //Also, include prompt to play another game
                 stillPlaying = false;
             }
-            else if (false) { //State: Game start
+            else if(false){ //State: Game start
                 //Ensure at least 2 clients connected and that all expected players have entered "ready"
                 //Possible buffer message: "Waiting for other players..."
                 //Possible issues on client side code: what do they write back to the above message to continue?
@@ -384,10 +386,13 @@ void play_game(int sock) {
             else if (cardsSelected == 0) {
                 //Create buffer that prompts for card 1
                 cardsSelected++;
+                bzero(buffer, 256); // clear buffer
+                strcpy(buffer, facedown_deck_to_buffer(buffer)); // copy into buffer again
+                strcat(buffer, "\nPlease enter first selection a-->r\n");
             }
-            else if (cardsSelected == 1) {
+            else if (cardsSelected == 1){
                 isValid = validate_input(buffer[0]);
-                if (!isValid) {
+                if (!isValid){
                     //Create buffer that re-prompts for card 1
                 }
                 else { //First card is valid
@@ -395,9 +400,9 @@ void play_game(int sock) {
                     cardsSelected++;
                 }
             }
-            else if (cardsSelected == 2) {
+            else if (cardsSelected == 2){
                 isValid = validate_input(buffer[0]);
-                if (!isValid) {
+                if (!isValid){
                     //Create buffer that re-prompts for card 2
                 }
                 else { //Second card is valid
@@ -405,7 +410,7 @@ void play_game(int sock) {
                     /*If cards match, then updateScores(currPlayer);
                      *updateScores function represents critical section*/
                     cardsSelected == 0;
-                }
+                }  
             }
             else {
                 /* Unexpected State: Print state information to server console and
