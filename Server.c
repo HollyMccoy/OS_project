@@ -18,7 +18,7 @@
 #define MAX_CARDS 18
 #define MAX_SYMBOLS 9
 #define MAX_BUFFER 256
-#define MAX_PLAYERS 2
+#define MAX_PLAYERS 5
 #define TEST_MODE 0 // If TEST_MODE = 1 (True) Will Begin Testing TEST_MODE = 0 (False) Will Skip Testing
 // array of pointers to characters for symbols
 char symbols[MAX_SYMBOLS] = { '!', '@', '#', '$', '^', '&', '*', '+', '~' };
@@ -177,11 +177,12 @@ int main(int argc, char* argv[]) {
 void play_game(int sock) {
     int status;
     char buffer[256];
-    char tempString[12];
+    char tempString[16]; //Used with sprintf and strcat to append text to buffer
     char turn[12];
     bzero(buffer, 256); // empty buffer
     char input;
     int cardLocation, cardLocation2;
+    int i = 0; //Loop counter
     Card firstCard, secondCard; //these will be compared
     bool stillPlaying = true;
     bool continuePlaying = false;
@@ -377,15 +378,22 @@ void play_game(int sock) {
                 //Create game over buffer with final scores
                 //Also, include prompt to play another game
                 stillPlaying = false;
-                strcpy(buffer, "\n----GAME OVER----\nFinal score: \n");
-                sprintf(tempString, "%d", game_data->playerScores[0]);
+                bzero(buffer, MAX_BUFFER);
+                strcpy(buffer, "\n----GAME OVER----\nFinal Scores: \n");
+                //Adding each player's score to buffer, adjusted for number of players
+                for (i = 0; i < game_data->numOfPlayers; i++) {
+                    sprintf(tempString, "Player %d: %d\n", i+1, game_data->playerScores[i]);
+                    strcat(buffer, tempString);
+                }
+                /* Leaving in as comment for code review and easy reversal if necessary
                 strcat(buffer, "Scores\n\nPlayer 1: ");
                 strcat(buffer, tempString);
                 sprintf(tempString, "%d", game_data->playerScores[1]);
                 strcat(buffer, "\nPlayer 2: ");
                 strcat(buffer, tempString);
-                strcat(buffer, "\n\n");
-                strcat(buffer, "Would you like to play again?\n if so, enter \"yes\"\n\n");
+                */
+                strcat(buffer, "\n");
+                strcat(buffer, "Would you like to play again?\n if so, enter \"yes\"\n");
                 // write buffer, receive response, change continuePlaying to true if continue playing is selected or leave continuePlaying as is 
             }
             else if (false) { //State: Game start
