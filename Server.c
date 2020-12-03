@@ -206,7 +206,7 @@ void play_game(int sock) {
     //------------------------------- Game Loop Begins ------------------------------------
     // this game mode is for when the players take turns
 
-    if (isTakeTurns) {
+    if (false && isTakeTurns) { //We may be able to consolidate both modes into one loop
         while (stillPlaying) {
             /*
              print player's turn
@@ -411,6 +411,11 @@ void play_game(int sock) {
                 strcat(buffer, tempString);
                 continue; //stub
             }
+            else if (isTakeTurns && (currPlayer != playerTurn)) {
+                printf("\nShouldn't be here yet--In development\n"); //Delete later
+                break; //Delete later
+                //Will send code (e.g., '2') telling client to wait for its turn
+            }
             else if (cardsSelected == 0) {
                 //Create buffer that prompts for card 1
                 cardsSelected++;
@@ -423,11 +428,12 @@ void play_game(int sock) {
                 if (!isValid) {
                     bzero(buffer, 256); // clear buffer
                     strcpy(buffer, "You have entered an invalid response please try again");
-                    strcat(buffer, facedown_deck_to_buffer(buffer)); // copy into buffer again
+                    //strcat(buffer, facedown_deck_to_buffer(buffer)); // copy into buffer again
                     strcat(buffer, "\nPlease enter first selection a-->r\n");
                 }
                 else { //First card is valid
                     cardLocation = char_to_num_convert(buffer[0]);
+                    game_data->deck[cardLocation].isFlipped = true;
                     //Create buffer that prompts for card 2
                     cardsSelected++;
                     bzero(buffer, 256); // clear buffer
@@ -441,12 +447,13 @@ void play_game(int sock) {
                     //Create buffer that re-prompts for card 2
                     bzero(buffer, 256); // clear buffer
                     strcpy(buffer, "You have entered an invalid response please try again");
-                    strcat(buffer, facedown_deck_to_buffer(buffer)); // copy into buffer again
+                    //strcat(buffer, facedown_deck_to_buffer(buffer)); // copy into buffer again
                     strcat(buffer, "\nPlease enter second selection a-->r\n");
                 }
                 else { //Second card is valid
                     cardLocation2 = char_to_num_convert(buffer[0]);
-                    cardsSelected = 0;
+                    game_data->deck[cardLocation2].isFlipped = true;
+                    cardsSelected = 0; //Reset state
                     //Check for match and create corresponding buffer message
                     /*If cards match, then updateScores(currPlayer);
                      *updateScores function represents critical section*/
