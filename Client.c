@@ -20,7 +20,7 @@ int main()
     int  port;
     int  socketid;      /*will hold the id of the socket created*/
     int  status;        /* error status holder*/
-     
+
     struct sockaddr_in serv_addr;
     struct hostent* server;
 
@@ -77,8 +77,9 @@ int main()
         "    |                              |\n"
         "    +------------------------------+\n\n"
         "    Enter \"ready\" to begin playing\n\n";
-    printf("%s",welcome);
-   
+
+    printf("%s", welcome);
+
     Play(socketid);
 
 
@@ -87,9 +88,9 @@ int main()
 
     return 0;
 }
-/* 
-Play Function
 
+/*
+Play Function
 */
 void Play(int socketid)
 {
@@ -113,7 +114,7 @@ void Play(int socketid)
         printf("error while sending client message to server\n");
     }
 
-    
+
 
 
     while (stillPlaying) // check if still playing. still playing should not adjust and game should continue without end
@@ -132,8 +133,9 @@ void Play(int socketid)
                 exit(1);
             }
 
-            /*State checking and management code here - Chase */ 
-            if(buffer[0] == 0){
+
+            /*State checking and management code here - Chase */
+            if (buffer[0] == 0) {
                 my_turn = false;
                 break;
             }
@@ -150,22 +152,20 @@ void Play(int socketid)
             //Comment out the code below
             /*
             status = write(socketid, buffer, 255);
-
             //read card layout at the moment
-            
+
             read_socket(socketid);
             read_socket(socketid);
-            
+
             //pick card 1
-            
+
+            take_card_input(socketid);
+            //pick card 2
+
             take_card_input(socketid);
 
-            //pick card 2
-            
-            take_card_input(socketid);
-            
             //print score after round
-            
+
             read_socket(socketid);
             */
 
@@ -173,10 +173,8 @@ void Play(int socketid)
             /*
             status = read(socketid, buffer, 255);
             printf("%s \n", buffer);
-
             status = read(socketid, buffer, 255);
             printf("%s \n", buffer);
-
             status = read(socketid, buffer, 255);
             printf("%s \n", buffer);
             */
@@ -205,9 +203,11 @@ void Play(int socketid)
 // {
 //     int status;
 //     char buffer[256];
+
     
 //     /*
     
+
 //      write card choice to server - Chase
 
 //     */
@@ -221,14 +221,18 @@ void Play(int socketid)
 //     }
 //     bzero(buffer, 256); // clear buffer
 //     /*
+
     
+
 //      read validation input - Chase
 
 //     */
 //     status = read(socketid, buffer, 255);
 //     //printf("\n%s\n", buffer); // Testing
 
+
     
+
 //     while (buffer[0] != '1')
 //     {
 //         bzero(buffer, 256); // clear buffer
@@ -246,9 +250,11 @@ void Play(int socketid)
 
 //     }
 //     /*
-    
+
+
 //      read card layout - Chase
-    
+
+
 //     */
 //     bzero(buffer, 256); // clear buffer
 //     status = read(socketid, buffer, 255);
@@ -258,7 +264,9 @@ void Play(int socketid)
 //         perror("error while reading message from server");
 //         exit(1);
 //     }
-    
+
+
+
 
 // }
 
