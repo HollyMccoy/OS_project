@@ -183,6 +183,7 @@ int main(int argc, char* argv[]) {
 void play_game(int sock) {
     int status;
     char buffer[256];
+    char lazyBuffer[100];
     char tempString[16]; //Used with sprintf and strcat to append text to buffer
     char turn[12];
     bzero(buffer, 256); // empty buffer
@@ -425,7 +426,7 @@ void play_game(int sock) {
                 //Create buffer that prompts for card 1
                 cardsSelected++;
                 bzero(buffer, 256); // clear buffer
-                strcpy(buffer, facedown_deck_to_buffer(buffer)); // copy into buffer again
+                //strcpy(buffer, facedown_deck_to_buffer(buffer)); // copy into buffer again
                 strcat(buffer, "\nPlease enter first selection a-->r\n");
             }
             else if (cardsSelected == 1) {
@@ -463,10 +464,10 @@ void play_game(int sock) {
                     /*If cards match, then updateScores(currPlayer);
                      *updateScores function represents critical section*/
                     //pthread_mutex_lock(&mutex);
+                    bzero(buffer, 256);
+                    buffer[0] = '1'; //Code for client to send dummy reply that skips user input
+                    strcat(buffer, facedown_deck_to_buffer(lazyBuffer));
                     if (game_data->deck[cardLocation].symbol == game_data->deck[cardLocation2].symbol) {
-                        // status = write(sock, "\nMatch!\n", 255);
-                        bzero(buffer, 256);
-                        buffer[0] = '1'; //Code for client to send dummy reply that skips user input
                         strcat(buffer, "\nMatch!\n");
                         //taking the cards out of play
                         game_data->deck[cardLocation].inPlay = false;
@@ -478,8 +479,6 @@ void play_game(int sock) {
                     }
                     //If cards do not match, then we will be flipping cards back over
                     else {
-                        bzero(buffer, 256);
-                        buffer[0] = '1'; //Code for client to send dummy reply that skips user input
                         strcat(buffer, "\nTry again\n");
                         //printf("Try again\n");
                         game_data->deck[cardLocation].isFlipped = false;
