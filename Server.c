@@ -24,7 +24,7 @@
 char symbols[MAX_SYMBOLS] = { '!', '@', '#', '$', '^', '&', '*', '+', '~' };
 #define PORTNUM  5016 /* the port number the server will listen to*/
 #define DEFAULT_PROTOCOL 0  /*constant for default protocol*/
-pthread_mutex_tmutex;
+//pthread_mutex_tmutex;
 
 
 
@@ -47,7 +47,7 @@ typedef struct
     int player_sock[MAX_PLAYERS];
     int expPlayers; // = 0; Number of players expected to join
     int numOfPlayers; // = 0; Number of players currently connected (Note: need to delete declaration in play game function) 
-    char buffer[255];
+    char buffer[MAX_BUFFER];
     Card deck[MAX_CARDS];
 } shared_mem;
 shared_mem* game_data;
@@ -82,7 +82,7 @@ int main(int argc, char* argv[]) {
     int i = 0;
     char* shmadd;
     shmadd = (char*)0;
-    pthread_mutex_init(&mutex, NULL);
+    //pthread_mutex_init(&mutex, NULL);
     // shared memory startup
     if ((shmid = shmget(SHMKEY, sizeof(int), IPC_CREAT | 0666)) < 0)
     {
@@ -151,9 +151,9 @@ int main(int argc, char* argv[]) {
             exit(1);
         }
 
-        pthread_mutex_lock(&mutex);
+        //pthread_mutex_lock(&mutex);
         game_data->numOfPlayers++;
-        pthread_mutex_unlock(&mutex);
+        //pthread_mutex_unlock(&mutex);
         if (pid == 0) {
             /* This is the client process */
             close(sockfd);
@@ -351,7 +351,7 @@ void play_game(int sock) {
             status = write(sock, buffer, 255);
 
             //Rotate player turn
-            if (++playerTurn == numOfPlayers)
+            if (++playerTurn == game_data->numOfPlayers)
                 playerTurn = 0;
         }
     }
@@ -427,6 +427,7 @@ void play_game(int sock) {
                     strcat(buffer, "\nPlease enter first selection a-->r\n");
                 }
                 else { //First card is valid
+                    cardLocation = char_to_num_convert(buffer[0]);
                     //Create buffer that prompts for card 2
                     cardsSelected++;
                     bzero(buffer, 256); // clear buffer
@@ -444,12 +445,15 @@ void play_game(int sock) {
                     strcat(buffer, "\nPlease enter second selection a-->r\n");
                 }
                 else { //Second card is valid
+                    cardLocation2 = char_to_num_convert(buffer[0]);
+                    cardsSelected = 0;
                     //Check for match and create corresponding buffer message
                     /*If cards match, then updateScores(currPlayer);
                      *updateScores function represents critical section*/
-                    pthread_mutex_lock(&mutex);
+                    //pthread_mutex_lock(&mutex);
                     if (game_data->deck[cardLocation].symbol == game_data->deck[cardLocation2].symbol) {
                         // status = write(sock, "\nMatch!\n", 255);
+                        bzero(buffer, 256);
                         strcpy(buffer, "\nMatch!\n");
                         //taking the cards out of play
                         game_data->deck[cardLocation].inPlay = false;
@@ -461,19 +465,21 @@ void play_game(int sock) {
                     }
                     //If cards do not match, then we will be flipping cards back over
                     else {
+                        bzero(buffer, 256);
                         strcpy(buffer, "Try again\n");
                         //printf("Try again\n");
                         game_data->deck[cardLocation].isFlipped = false;
                         game_data->deck[cardLocation2].isFlipped = false;
                     }
-                    pthread_mutex_unlock(&mutex);
-                    cardsSelected == 0;
+                    //pthread_mutex_unlock(&mutex);
                 }
             }
             else {
                 /* Unexpected State: Print state information to server console and
                  * inform client of the error (include program end code)*/
+                bzero(buffer, 256);
                 buffer[0] = '0'; //Code to end client game loop; concatenate rest of message
+                strcat(buffer, "Unexpected State\n");
                 status = write(sock, buffer, 255); //Bad message
                 break;
             }
