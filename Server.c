@@ -137,6 +137,9 @@ int main(int argc, char* argv[]) {
     srand(time(0));
     // "deck" is a 'struct card' or 'Card' type array
     populate_deck(); // populate deck
+
+    // shuffle_deck(); // Shuffling Deck
+
     //printf("Deck of cards created");
     print_deck_faceup(); // print
 
