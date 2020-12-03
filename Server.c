@@ -46,7 +46,9 @@ typedef struct
     int playerScores[MAX_PLAYERS]; // = { 0 }
     int player_sock[MAX_PLAYERS];
     int expPlayers; // = 0; Number of players expected to join
-    int numOfPlayers; // = 0; Number of players currently connected (Note: need to delete declaration in play game function) 
+    int numOfPlayers; // = 0; Number of players currently connected (Note: need to delete declaration in play game function)
+    int playerTurn;
+    bool isTakeTurns; 
     char buffer[MAX_BUFFER];
     Card deck[MAX_CARDS];
 } shared_mem;
