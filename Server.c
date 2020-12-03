@@ -377,7 +377,7 @@ void play_game(int sock) {
                     continuePlaying = false;
                     //Reset game conditions
                     //Will need to alter code to offer ability to switch game modes
-                    //==> Could alter "void play_game(int sock)" to a function that return a bool
+                    //==> Use a code to pick between a) Play this game mode again b) Switch modes, or c) Quit (or "Enter any other key to quit")
                 }
                 else //Client response was to end game
                     break;
@@ -393,18 +393,11 @@ void play_game(int sock) {
                     sprintf(tempString, "Player %d: %d\n", i+1, game_data->playerScores[i]);
                     strcat(buffer, tempString);
                 }
-                /* Leaving in as comment for code review and easy reversal if necessary
-                strcat(buffer, "Scores\n\nPlayer 1: ");
-                strcat(buffer, tempString);
-                sprintf(tempString, "%d", game_data->playerScores[1]);
-                strcat(buffer, "\nPlayer 2: ");
-                strcat(buffer, tempString);
-                */
                 strcat(buffer, "\n");
                 strcat(buffer, "Would you like to play again?\n if so, enter \"yes\"\n");
                 // write buffer, receive response, change continuePlaying to true if continue playing is selected or leave continuePlaying as is 
             }
-            else if (false) { //State: Game start
+            else if (false) { //State: Game start OR Game restart
                 //Ensure at least 2 clients connected and that all expected players have entered "ready"
                 
                 //Possible issues on client side code: what do they write back to the above message to continue?
@@ -469,7 +462,8 @@ void play_game(int sock) {
                     if (game_data->deck[cardLocation].symbol == game_data->deck[cardLocation2].symbol) {
                         // status = write(sock, "\nMatch!\n", 255);
                         bzero(buffer, 256);
-                        strcpy(buffer, "\nMatch!\n");
+                        buffer[0] = '1'; //Code for client to send dummy reply that skips user input
+                        strcat(buffer, "\nMatch!\n");
                         //taking the cards out of play
                         game_data->deck[cardLocation].inPlay = false;
                         game_data->deck[cardLocation2].inPlay = false;
@@ -481,7 +475,8 @@ void play_game(int sock) {
                     //If cards do not match, then we will be flipping cards back over
                     else {
                         bzero(buffer, 256);
-                        strcpy(buffer, "Try again\n");
+                        buffer[0] = '1'; //Code for client to send dummy reply that skips user input
+                        strcat(buffer, "\nTry again\n");
                         //printf("Try again\n");
                         game_data->deck[cardLocation].isFlipped = false;
                         game_data->deck[cardLocation2].isFlipped = false;
