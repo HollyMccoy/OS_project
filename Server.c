@@ -63,7 +63,7 @@ void print_deck(); //Replaced by char * facedown_deck_to_buffer
 char* facedown_deck_to_buffer(char buffer[]);
 void display_welcome_message(); //Replaced in main by printf statement
 void shuffle_deck();
-//void reset_deck();
+void reset_deck(); //Reset deck after game ends
 int get_random_num(int numBeg, int numEnd);
 int char_to_num_convert(char theChar);
 void test(void* expected, void* actual, const char* testName); // Testing Prototype
@@ -373,6 +373,7 @@ void play_game(int sock) {
         bool isValid = false;
         while (true) {
             if (!stillPlaying) {
+                reset_deck(); //Placed here in anticipation for an option to change game modes
                 if (buffer[0] == 'y') { //Replay this game mode
                     stillPlaying = true;
                     continuePlaying = false;
@@ -662,6 +663,14 @@ bool isGameOver()
         }
     }
     return true;
+}
+
+void reset_deck() {
+    int i;
+    for (i = 0; i < MAX_CARDS; ++i) {
+        game_data->deck[i].inPlay = true;
+        game_data->deck[i].isFlipped = false;
+    }
 }
 
 void display_welcome_message() {

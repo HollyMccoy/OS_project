@@ -156,7 +156,10 @@ void Play(int socketid)
                 fgets(buffer, 255, stdin); // place input into buffer
 
                 if (checkInput && (buffer[0] != 'y'))
+                {
                     stillPlaying = false;
+                }
+                else checkInput = false;
             }
 
             status = write(socketid, buffer, strlen(buffer));
