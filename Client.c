@@ -97,6 +97,7 @@ void Play(int socketid)
     int status;
     bool stillPlaying = true; // Game status
     bool my_turn = true;
+    bool checkInput = false;
     bool waiting = true;
     char buffer[256];
 
@@ -147,9 +148,15 @@ void Play(int socketid)
                 strcpy(buffer, "\nReceived '1'\n");
             }
             else {
+                if (buffer[0] == '9') //Server has sent game over message with option to restart
+                    checkInput = true;
+                
                 //User enters input into buffer
                 bzero(buffer, 256); // clear buffer
                 fgets(buffer, 255, stdin); // place input into buffer
+
+                if (checkInput && (buffer[0] != 'y'))
+                    stillPlaying = false;
             }
 
             status = write(socketid, buffer, strlen(buffer));

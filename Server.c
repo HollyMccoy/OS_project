@@ -63,6 +63,7 @@ void print_deck(); //Replaced by char * facedown_deck_to_buffer
 char* facedown_deck_to_buffer(char buffer[]);
 void display_welcome_message(); //Replaced in main by printf statement
 void shuffle_deck();
+//void reset_deck();
 int get_random_num(int numBeg, int numEnd);
 int char_to_num_convert(char theChar);
 void test(void* expected, void* actual, const char* testName); // Testing Prototype
@@ -372,9 +373,10 @@ void play_game(int sock) {
         bool isValid = false;
         while (true) {
             if (!stillPlaying) {
-                if (continuePlaying) { //If "play another game" prompt leads to affirmative client response then continuePlaying will have changed to true 
+                if (buffer[0] == 'y') { //Replay this game mode
                     stillPlaying = true;
                     continuePlaying = false;
+                    continue; //Skips write and read for this loop and starts game reset
                     //Reset game conditions
                     //Will need to alter code to offer ability to switch game modes
                     //==> Use a code to pick between a) Play this game mode again b) Switch modes, or c) Quit (or "Enter any other key to quit")
@@ -387,7 +389,8 @@ void play_game(int sock) {
                 //Also, include prompt to play another game
                 stillPlaying = false;
                 bzero(buffer, MAX_BUFFER);
-                strcpy(buffer, "\n----GAME OVER----\nFinal Scores: \n");
+                buffer[0] = '9'; //Code that server has sent game over message
+                strcat(buffer, "\n----GAME OVER----\nFinal Scores: \n");
                 //Adding each player's score to buffer, adjusted for number of players
                 for (i = 0; i < game_data->numOfPlayers; i++) {
                     sprintf(tempString, "Player %d: %d\n", i+1, game_data->playerScores[i]);
