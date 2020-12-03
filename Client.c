@@ -77,6 +77,7 @@ int main()
         "    |                              |\n"
         "    +------------------------------+\n\n"
         "    Enter \"ready\" to begin playing\n\n";
+
     printf("%s", welcome);
 
     Play(socketid);
@@ -87,6 +88,7 @@ int main()
 
     return 0;
 }
+
 /*
 Play Function
 */
@@ -130,6 +132,7 @@ void Play(int socketid)
                 perror("error while reading message from server");
                 exit(1);
             }
+
 
             /*State checking and management code here - Chase */
             if (buffer[0] == 0) {
@@ -201,7 +204,9 @@ void Play(int socketid)
 //     int status;
 //     char buffer[256];
 
+    
 //     /*
+    
 
 //      write card choice to server - Chase
 
@@ -217,12 +222,16 @@ void Play(int socketid)
 //     bzero(buffer, 256); // clear buffer
 //     /*
 
+    
+
 //      read validation input - Chase
 
 //     */
 //     status = read(socketid, buffer, 255);
 //     //printf("\n%s\n", buffer); // Testing
 
+
+    
 
 //     while (buffer[0] != '1')
 //     {
@@ -242,7 +251,9 @@ void Play(int socketid)
 //     }
 //     /*
 
+
 //      read card layout - Chase
+
 
 //     */
 //     bzero(buffer, 256); // clear buffer
@@ -253,6 +264,8 @@ void Play(int socketid)
 //         perror("error while reading message from server");
 //         exit(1);
 //     }
+
+
 
 
 // }
