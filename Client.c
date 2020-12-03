@@ -97,6 +97,7 @@ void Play(int socketid)
     int status;
     bool stillPlaying = true; // Game status
     bool my_turn = true;
+    bool checkInput = false;
     bool waiting = true;
     char buffer[256];
 
@@ -125,7 +126,7 @@ void Play(int socketid)
             char buffer[256];
             bzero(buffer, 256); // clearing buffer
             status = read(socketid, buffer, 255); // reads buffer from server, returns status, -1 returns error
-            printf("\n%s \n", buffer);
+            printf("\n%s \n", buffer); //***Might need two buffers--one each for read and write--to better manage state checking messages
 
             if (status < 0) // Checking for error
             {
@@ -133,16 +134,34 @@ void Play(int socketid)
                 exit(1);
             }
 
+            //Should probably create a char code, so we can use one bzero
+            //char code = buffer[0]; //But declared before the loop
 
             /*State checking and management code here - Chase */
-            if (buffer[0] == 0) {
+            if (buffer[0] == '0') {
                 my_turn = false;
                 break;
             }
+            else if (buffer[0] == '1') {
+                //Skipping user input after checking for card match
+                bzero(buffer, 256);
+                strcpy(buffer, "\nReceived '1'\n");
+            }
+            else {
+                if (buffer[0] == '9') //Server has sent game over message with option to restart
+                    checkInput = true;
+                
+                //User enters input into buffer
+                bzero(buffer, 256); // clear buffer
+                fgets(buffer, 255, stdin); // place input into buffer
 
-            bzero(buffer, 256); // clear buffer
-            fgets(buffer, 255, stdin); // place input into buffer
-            //printf("\n%s\n", buffer);
+                if (checkInput && (buffer[0] != 'y'))
+                {
+                    stillPlaying = false;
+                }
+                else checkInput = false;
+            }
+
             status = write(socketid, buffer, strlen(buffer));
             if (status < 0)
             {
