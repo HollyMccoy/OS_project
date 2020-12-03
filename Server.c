@@ -97,6 +97,11 @@ int main(int argc, char* argv[]) {
         exit(0);
     }
     //printf("Shared memory creation was successful.\n");
+
+    //Initialize shared memory (game_data) fields to default values
+    game_data->numOfPlayers = 0;
+    game_data->expPlayers = 1; //Need to identify appropriate place and way to set by user
+
     /* First call to socket() function */
     sockfd = socket(AF_INET, SOCK_STREAM, DEFAULT_PROTOCOL);
 
@@ -151,11 +156,11 @@ int main(int argc, char* argv[]) {
             exit(1);
         }
 
-        //pthread_mutex_lock(&mutex);
-        game_data->numOfPlayers++;
-        //pthread_mutex_unlock(&mutex);
         if (pid == 0) {
             /* This is the client process */
+            //pthread_mutex_lock(&mutex);
+            game_data->numOfPlayers++;
+            //pthread_mutex_unlock(&mutex);
             close(sockfd);
             play_game(newsockfd); // run actual game in do process
             exit(0);
@@ -188,6 +193,9 @@ void play_game(int sock) {
     bool continuePlaying = false;
     bool isTakeTurns = false;
     int playerTurn = 0; //Tracks which player's turn it is; starts at 0
+
+    for (i =0; i < MAX_PLAYERS; i++) //Initialize scores; ***will move later***
+        game_data->playerScores[i] = 0; 
     
 
 
