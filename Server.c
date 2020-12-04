@@ -223,7 +223,10 @@ bool play_game(int sock) {
     reset_deck();
     //If restarting from a previously game, wait till everyone makes choice restart choice
     if (game_data->gameEnded)
-        while (game_data->numOfPlayers > 0);
+        while (game_data->numOfPlayers > 0){
+            status = write(sock, "2|Waiting on other players to join...", 38);
+            status = read(sock, buffer, 255);
+        }
 
 
     //strcpy(buffer, facedown_deck_to_buffer(deck, buffer)); // copy result of facedown_deck_to_buffer into buffer
