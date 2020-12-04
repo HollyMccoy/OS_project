@@ -18,13 +18,13 @@
 #define MAX_CARDS 18
 #define MAX_SYMBOLS 9
 #define MAX_BUFFER 256
-#define MAX_PLAYERS 5
+#define MAX_PLAYERS 6
 #define TEST_MODE 0 // If TEST_MODE = 1 (True) Will Begin Testing TEST_MODE = 0 (False) Will Skip Testing
 // array of pointers to characters for symbols
 char symbols[MAX_SYMBOLS] = { '!', '@', '#', '$', '^', '&', '*', '+', '~' };
-#define PORTNUM  5016 /* the port number the server will listen to*/
+#define PORTNUM  5019 /* the port number the server will listen to*/
 #define DEFAULT_PROTOCOL 0  /*constant for default protocol*/
-//pthread_mutex_tmutex;
+pthread_mutex_t mutex;
 
 
 
@@ -85,7 +85,9 @@ int main(int argc, char* argv[]) {
     int i = 0;
     char* shmadd;
     shmadd = (char*)0;
-    //pthread_mutex_init(&mutex, NULL);
+    pthread_mutex_init(&mutex, NULL);
+
+
     // shared memory startup
     if ((shmid = shmget(SHMKEY, sizeof(int), IPC_CREAT | 0666)) < 0)
     {
@@ -100,10 +102,11 @@ int main(int argc, char* argv[]) {
         exit(0);
     }
     //printf("Shared memory creation was successful.\n");
-
+    printf("How many people will be playing?\n");
+    scanf("%d", &game_data->expPlayers);
     //Initialize shared memory (game_data) fields to default values
     game_data->numOfPlayers = 0;
-    game_data->expPlayers = 1; //Need to identify appropriate place and way to set by user
+
 
     /* First call to socket() function */
     sockfd = socket(AF_INET, SOCK_STREAM, DEFAULT_PROTOCOL);
@@ -164,9 +167,7 @@ int main(int argc, char* argv[]) {
 
         if (pid == 0) {
             /* This is the client process */
-            //pthread_mutex_lock(&mutex);
-            game_data->numOfPlayers++;
-            //pthread_mutex_unlock(&mutex);
+            
             close(sockfd);
             play_game(newsockfd); // run actual game in do process
             exit(0);
@@ -200,6 +201,7 @@ void play_game(int sock) {
     bool continuePlaying = false;
     bool isTakeTurns = false;
     int playerTurn = 0; //Tracks which player's turn it is; starts at 0
+    pthread_mutex_init(&mutex, NULL);
 
     for (i =0; i < MAX_PLAYERS; i++) //Initialize scores; ***will move later***
         game_data->playerScores[i] = 0; 
@@ -210,6 +212,23 @@ void play_game(int sock) {
     //status = write(sock, buffer, 210); // send buffer to client
     status = read(sock, buffer, 255); // read any input
     printf(buffer);
+    pthread_mutex_lock(&mutex);
+    game_data->numOfPlayers++;
+    pthread_mutex_unlock(&mutex);
+
+    while (game_data->expPlayers != game_data->numOfPlayers) { //State: Game start OR Game restart
+        //Ensure at least 2 clients connected and that all expected players have entered "ready"
+        
+        strcpy(buffer, "\nWaiting on other players...");
+        sprintf(tempString, "(%d/", game_data->numOfPlayers);
+        strcat(buffer, tempString);
+        sprintf(tempString, "%d) players have joined... press enter to refresh\n\n", game_data->expPlayers);
+        strcat(buffer, tempString);
+        status = write(sock, buffer, 255);
+        bzero(buffer, 256);
+        status = read(sock, buffer, 255);
+        
+    }
 
     if (status < 0) {
         perror("ERROR reading from socket");
@@ -223,6 +242,7 @@ void play_game(int sock) {
 
     if (false && isTakeTurns) { //We may be able to consolidate both modes into one loop
         while (stillPlaying) {
+            
             /*
              print player's turn
             */
@@ -407,20 +427,26 @@ void play_game(int sock) {
                 strcat(buffer, "Would you like to play again?\n if so, enter \"yes\"\n");
                 // write buffer, receive response, change continuePlaying to true if continue playing is selected or leave continuePlaying as is 
             }
-            else if (false) { //State: Game start OR Game restart
-                //Ensure at least 2 clients connected and that all expected players have entered "ready"
-                
-                //Possible issues on client side code: what do they write back to the above message to continue?
-                //==> Could use a non-user message as an automatic client response, but this could lead to many quick print statements
-                //==> Or, could simply add to the above message "...Press Enter to refresh."
-                //==> what if we remove the idea of a ready message and just dont send out the deck of cards till all players have connected?
-                // message to buffer example: "Waiting on other players...(3/5) players have joined..."
-                strcpy(buffer, "\nWaiting on other players...");
-                sprintf(tempString, "(%d/", game_data->numOfPlayers);
-                strcat(buffer, tempString);
-                sprintf(tempString, "%d) players have joined...\n\n", game_data->expPlayers);
-                strcat(buffer, tempString);
-                continue; //stub
+           //else if (game_data->expPlayers != game_data->numOfPlayers) { //State: Game start OR Game restart
+           //    //Ensure at least 2 clients connected and that all expected players have entered "ready"
+           //    
+           //    //Possible issues on client side code: what do they write back to the above message to continue?
+           //    //==> Could use a non-user message as an automatic client response, but this could lead to many quick print statements
+           //    //==> Or, could simply add to the above message "...Press Enter to refresh."
+           //    //==> what if we remove the idea of a ready message and just dont send out the deck of cards till all players have connected?
+           //    // message to buffer example: "Waiting on other players...(3/5) players have joined..."
+
+           //    strcpy(buffer, "\nWaiting on other players...");
+           //    sprintf(tempString, "(%d/", game_data->numOfPlayers);
+           //    strcat(buffer, tempString);
+           //    sprintf(tempString, "%d) players have joined...\n\n", game_data->expPlayers);
+           //    strcat(buffer, tempString);
+           //    continue; //stub
+           //}
+            else if (isTakeTurns && (currPlayer != playerTurn)) {
+                printf("\nShouldn't be here yet--In development\n"); //Delete later
+                break; //Delete later
+                //Will send code (e.g., '2') telling client to wait for its turn
             }
             else if (isTakeTurns && (currPlayer != playerTurn)) {
                 printf("\nShouldn't be here yet--In development\n"); //Delete later
@@ -468,7 +494,7 @@ void play_game(int sock) {
                     //Check for match and create corresponding buffer message
                     /*If cards match, then updateScores(currPlayer);
                      *updateScores function represents critical section*/
-                    //pthread_mutex_lock(&mutex);
+                    pthread_mutex_lock(&mutex);
                     bzero(buffer, 256);
                     buffer[0] = '1'; //Code for client to send dummy reply that skips user input
                     strcat(buffer, facedown_deck_to_buffer(lazyBuffer));
@@ -489,7 +515,7 @@ void play_game(int sock) {
                         game_data->deck[cardLocation].isFlipped = false;
                         game_data->deck[cardLocation2].isFlipped = false;
                     }
-                    //pthread_mutex_unlock(&mutex);
+                    pthread_mutex_unlock(&mutex);
                 }
             }
             else {
