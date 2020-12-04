@@ -49,6 +49,7 @@ typedef struct
     int numOfPlayers; // = 0; Number of players currently connected (Note: need to delete declaration in play game function)
     int playerTurn;
     bool isTakeTurns; 
+    bool gameEnded;
     char buffer[MAX_BUFFER];
     Card deck[MAX_CARDS];
 } shared_mem;
@@ -115,6 +116,7 @@ int main(int argc, char* argv[]) {
         game_data->isTakeTurns = true;
     //Initialize shared memory (game_data) fields to default values
     game_data->numOfPlayers = 0;
+    game_data->gameEnded = false;
 
     /* First call to socket() function */
     sockfd = socket(AF_INET, SOCK_STREAM, DEFAULT_PROTOCOL);
@@ -218,6 +220,10 @@ bool play_game(int sock) {
     for (i =0; i < MAX_PLAYERS; i++) //Initialize scores; ***will move later***
         game_data->playerScores[i] = 0; 
     
+    reset_deck();
+    //If restarting from a previously game, wait till everyone makes choice restart choice
+    if (game_data->gameEnded)
+        while (game_data->numOfPlayers > 0);
 
 
     //strcpy(buffer, facedown_deck_to_buffer(deck, buffer)); // copy result of facedown_deck_to_buffer into buffer
@@ -409,7 +415,7 @@ bool play_game(int sock) {
         bool isValid = false;
         while (true) {
             if (!stillPlaying) {
-                reset_deck(); //Placed here in anticipation for an option to change game modes
+                //reset_deck(); //Placed here in anticipation for an option to change game modes
                 if (buffer[0] == 'y') { //Replay this game mode
                     playAgain = true;
                     strcpy(buffer, "\nPress enter to continue...\n");
@@ -427,6 +433,7 @@ bool play_game(int sock) {
             else if (isGameOver()) {
                 //Create game over buffer with final scores
                 //Also, include prompt to play another game
+                game_data->gameEnded = true;
                 stillPlaying = false;
                 bzero(buffer, MAX_BUFFER);
                 buffer[0] = '9'; //Code that server has sent game over message
