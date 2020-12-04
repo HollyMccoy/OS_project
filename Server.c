@@ -493,7 +493,7 @@ void play_game(int sock) {
                         game_data->deck[cardLocation2].inPlay = false;
 
                         //Adding point to player
-                        game_data->playerScores[playerTurn]++;
+                        game_data->playerScores[game_data->playerTurn]++;
 
                     }
                     //If cards do not match, then we will be flipping cards back over
