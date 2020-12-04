@@ -219,7 +219,11 @@ void play_game(int sock) {
     while (game_data->expPlayers != game_data->numOfPlayers) { //State: Game start OR Game restart
         //Ensure at least 2 clients connected and that all expected players have entered "ready"
         
-        strcpy(buffer, "\nWaiting on other players...press enter to refresh the number of players joined...\n");
+        strcpy(buffer, "\nWaiting on other players...");
+        sprintf(tempString, "(%d/", game_data->numOfPlayers);
+        strcat(buffer, tempString);
+        sprintf(tempString, "%d) players have joined... press enter to refresh\n\n", game_data->expPlayers);
+        strcat(buffer, tempString);
         status = write(sock, buffer, 255);
         bzero(buffer, 256);
         status = read(sock, buffer, 255);
