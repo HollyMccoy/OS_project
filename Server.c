@@ -107,8 +107,8 @@ int main(int argc, char* argv[]) {
     while ((getchar()) != '\n'); 
     char choice;
     printf("Enter \"y\" to force turns (press enter for free play): ");
-    scanf("%c",choice);
     while ((getchar()) != '\n'); 
+    scanf("%c",choice);
     if (choice == 'y')
         game_data->isTakeTurns = true;
     //Initialize shared memory (game_data) fields to default values
