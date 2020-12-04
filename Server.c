@@ -106,7 +106,7 @@ int main(int argc, char* argv[]) {
     scanf("%d", &game_data->expPlayers);
     while ((getchar()) != '\n'); 
     char choice;
-    printf("Enter \"y\" to force turns (defaults to free play): ");
+    printf("Enter \"y\" to force turns (press enter for free play): ");
     scanf("%c",choice);
     while ((getchar()) != '\n'); 
     if (choice == 'y')
@@ -523,7 +523,7 @@ bool play_game(int sock) {
                         game_data->deck[cardLocation2].inPlay = false;
 
                         //Adding point to player
-                        game_data->playerScores[game_data->playerTurn]++;
+                        game_data->playerScores[currPlayer]++;
 
                     }
                     //If cards do not match, then we will be flipping cards back over
