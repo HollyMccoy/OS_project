@@ -18,7 +18,7 @@
 #define MAX_CARDS 18
 #define MAX_SYMBOLS 9
 #define MAX_BUFFER 256
-#define MAX_PLAYERS 5
+#define MAX_PLAYERS 6
 #define TEST_MODE 0 // If TEST_MODE = 1 (True) Will Begin Testing TEST_MODE = 0 (False) Will Skip Testing
 // array of pointers to characters for symbols
 char symbols[MAX_SYMBOLS] = { '!', '@', '#', '$', '^', '&', '*', '+', '~' };
