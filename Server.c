@@ -112,7 +112,6 @@ int main(int argc, char* argv[]) {
     //Initialize shared memory (game_data) fields to default values
     game_data->numOfPlayers = 0;
 
-
     /* First call to socket() function */
     sockfd = socket(AF_INET, SOCK_STREAM, DEFAULT_PROTOCOL);
 
@@ -195,11 +194,12 @@ void play_game(int sock) {
     int status;
     char buffer[256];
     char lazyBuffer[100];
-    char tempString[16]; //Used with sprintf and strcat to append text to buffer
+    char tempString[50]; //Used with sprintf and strcat to append text to buffer
     char turn[12];
     bzero(buffer, 256); // empty buffer
     char input;
     int cardLocation, cardLocation2;
+    int currPlayer; //The player number for the given client connection
     int i = 0; //Loop counter
     Card firstCard, secondCard; //these will be compared
     bool stillPlaying = true;
@@ -208,6 +208,9 @@ void play_game(int sock) {
     int playerTurn = 0; //Tracks which player's turn it is; starts at 0
     pthread_mutex_init(&mutex, NULL);
 
+
+    currPlayer = game_data->numOfPlayers++;
+    game_data->playerTurn = 0;
     for (i =0; i < MAX_PLAYERS; i++) //Initialize scores; ***will move later***
         game_data->playerScores[i] = 0; 
     
@@ -397,8 +400,6 @@ void play_game(int sock) {
     }
     else { //Non-turn mode
         int cardsSelected = 0; //Number of cards currently selected by client
-        int currPlayer; //The player number for the given client connection
-        //Initialized elsewhere with: currPlayer = numOfPlayers++;
         /*numOfPlayers should be placed in shared memory and track the number of connected players
          *Also, only allow new client game connections while numOfPlayers < 5*/
         bool isValid = false;
@@ -453,9 +454,10 @@ void play_game(int sock) {
                 break; //Delete later
                 //Will send code (e.g., '2') telling client to wait for its turn
             }
-            else if (isTakeTurns && (currPlayer != playerTurn)) {
-                printf("\nShouldn't be here yet--In development\n"); //Delete later
-                break; //Delete later
+            else if (game_data->isTakeTurns && (currPlayer != game_data->playerTurn)) {
+                bzero(buffer, MAX_BUFFER);
+                buffer[0] = '2';
+                strcat(buffer, "\nWaiting for your turn...\n");
                 //Will send code (e.g., '2') telling client to wait for its turn
             }
             else if (cardsSelected == 0) {
@@ -463,6 +465,11 @@ void play_game(int sock) {
                 cardsSelected++;
                 bzero(buffer, 256); // clear buffer
                 //strcpy(buffer, facedown_deck_to_buffer(buffer)); // copy into buffer again
+                if (game_data->isTakeTurns) {
+                    strcpy(buffer, facedown_deck_to_buffer(buffer)); // copy into buffer again
+                    sprintf(tempString, "Player %d", currPlayer+1);
+                    strcat(buffer, tempString);
+                }
                 strcat(buffer, "\nPlease enter first selection a-->r\n");
             }
             else if (cardsSelected == 1) {
@@ -496,6 +503,11 @@ void play_game(int sock) {
                     cardLocation2 = char_to_num_convert(buffer[0]);
                     game_data->deck[cardLocation2].isFlipped = true;
                     cardsSelected = 0; //Reset state
+                    
+                    game_data->playerTurn++; //Prepare for next turn
+                    if (game_data->playerTurn >= game_data->numOfPlayers)
+                        game_data->playerTurn = 0;
+
                     //Check for match and create corresponding buffer message
                     /*If cards match, then updateScores(currPlayer);
                      *updateScores function represents critical section*/
@@ -510,7 +522,7 @@ void play_game(int sock) {
                         game_data->deck[cardLocation2].inPlay = false;
 
                         //Adding point to player
-                        game_data->playerScores[playerTurn]++;
+                        game_data->playerScores[game_data->playerTurn]++;
 
                     }
                     //If cards do not match, then we will be flipping cards back over
