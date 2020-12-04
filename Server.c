@@ -102,6 +102,7 @@ int main(int argc, char* argv[]) {
         exit(0);
     }
     //printf("Shared memory creation was successful.\n");
+    printf("How many people will be playing?");
     scanf("%d", &game_data->expPlayers);
     //Initialize shared memory (game_data) fields to default values
     game_data->numOfPlayers = 0;
