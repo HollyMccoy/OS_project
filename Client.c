@@ -7,7 +7,7 @@
 #include<netinet/in.h>
 #include<netdb.h>
 #include <stdbool.h>
-#define PORTNUM  5016 /* the port number that the server is listening to*/
+#define PORTNUM  5018 /* the port number that the server is listening to*/
 #define DEFAULT_PROTOCOL 0  /*constant for default protocol*/
 void Play(int socketid);
 void take_card_input(int socketid);
@@ -37,7 +37,7 @@ int main()
     /* before connecting the socket we need to set up the right values in the different fields of the structure server_addr
     you can check the definition of this structure on your own*/
 
-    server = gethostbyname("osnode11"); //osnode10
+    server = gethostbyname("osnode10"); //osnode10
 
     if (server == NULL)
     {
@@ -146,6 +146,13 @@ void Play(int socketid)
                 //Skipping user input after checking for card match
                 bzero(buffer, 256);
                 strcpy(buffer, "\nReceived '1'\n");
+            }
+            else if (buffer[0] == '2') {
+                bzero(buffer, 256);
+                //strcpy(buffer, "\nReceived '2'\n");
+                //sleep(2);
+                printf("\nPress enter to refesh.");
+                fgets(buffer, 255, stdin); // place input into buffer
             }
             else {
                 if (buffer[0] == '9') //Server has sent game over message with option to restart
