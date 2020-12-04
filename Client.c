@@ -150,9 +150,9 @@ void Play(int socketid)
             }
             else if (buffer[0] == '2') {
                 bzero(buffer, 256);
-                //strcpy(buffer, "\nReceived '2'\n");
-                //sleep(2);
-                printf("\nPress enter to refesh.");
+                strcpy(buffer, "\nReceived '2'\n");
+                sleep(3); //Refresh every three seconds
+                //printf("\nPress enter to refesh.");
                 fgets(buffer, 255, stdin); // place input into buffer
             }
             else {

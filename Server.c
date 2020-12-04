@@ -178,7 +178,6 @@ int main(int argc, char* argv[]) {
             bool playAgain = true;
             while(playAgain)
                 playAgain = play_game(newsockfd); // run actual game in do process
-            game_data->numOfPlayers--;
             exit(0);
         }
         else {
@@ -230,7 +229,7 @@ bool play_game(int sock) {
     while (game_data->expPlayers != game_data->numOfPlayers) { //State: Game start OR Game restart
         //Ensure at least 2 clients connected and that all expected players have entered "ready"
         
-        strcpy(buffer, "\nWaiting on other players...");
+        strcpy(buffer, "2\nWaiting on other players...");
         sprintf(tempString, "(%d/", game_data->numOfPlayers);
         strcat(buffer, tempString);
         sprintf(tempString, "%d) players have joined... press enter to refresh\n\n", game_data->expPlayers);
@@ -413,6 +412,7 @@ bool play_game(int sock) {
                     playAgain = true;
                     strcpy(buffer, "\nPress enter to continue...\n");
                     status = write(sock, buffer, 255);
+                    game_data->numOfPlayers--;
                     break; //Skips write and read for this loop and starts game reset
                     //Reset game conditions
                     //Will need to alter code to offer ability to switch game modes
