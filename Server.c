@@ -72,6 +72,7 @@ void test(void* expected, void* actual, const char* testName); // Testing Protot
 bool validate_input(char userInput);
 bool isGameOver();
 void play_game(int sock);
+bool play_game(int sock);
 
 
 
@@ -175,7 +176,9 @@ int main(int argc, char* argv[]) {
             /* This is the client process */
             
             close(sockfd);
-            play_game(newsockfd); // run actual game in do process
+            bool playAgain = true;
+            while(playAgain)
+                playAgain = play_game(newsockfd); // run actual game in do process
             exit(0);
         }
         else {
@@ -192,7 +195,7 @@ int main(int argc, char* argv[]) {
 }
 
 
-void play_game(int sock) {
+bool play_game(int sock) {
     int status;
     char buffer[256];
     char lazyBuffer[100];
@@ -205,7 +208,7 @@ void play_game(int sock) {
     int i = 0; //Loop counter
     Card firstCard, secondCard; //these will be compared
     bool stillPlaying = true;
-    bool continuePlaying = false;
+    bool playAgain = false;
     bool isTakeTurns = false;
     int playerTurn = 0; //Tracks which player's turn it is; starts at 0
     pthread_mutex_init(&mutex, NULL);
@@ -407,9 +410,8 @@ void play_game(int sock) {
             if (!stillPlaying) {
                 reset_deck(); //Placed here in anticipation for an option to change game modes
                 if (buffer[0] == 'y') { //Replay this game mode
-                    stillPlaying = true;
-                    continuePlaying = false;
-                    continue; //Skips write and read for this loop and starts game reset
+                    playAgain = true;
+                    break; //Skips write and read for this loop and starts game reset
                     //Reset game conditions
                     //Will need to alter code to offer ability to switch game modes
                     //==> Use a code to pick between a) Play this game mode again b) Switch modes, or c) Quit (or "Enter any other key to quit")
@@ -552,7 +554,7 @@ void play_game(int sock) {
 
 
 
-
+    return playAgain;
 }
 
 
