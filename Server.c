@@ -103,14 +103,13 @@ int main(int argc, char* argv[]) {
     }
     //printf("Shared memory creation was successful.\n");
     printf("How many people will be playing?\n");
-    fgets(buffer, 2, stdin);
-    //scanf("%d", &game_data->expPlayers);
-    game_data->expPlayers = buffer[0] - '0';
+    scanf("%d", &game_data->expPlayers);
+    while ((getchar()) != '\n'); 
     char choice;
-    printf("Enter \"y\" to force turns (defaults to free play):\n");
-    fgets(buffer, 2, stdin);
-    //scanf("%d", &game_data->expPlayers);
-    if (buffer[0] == 'y')
+    printf("Enter \"y\" to force turns (defaults to free play): ");
+    scanf("%c",choice);
+    while ((getchar()) != '\n'); 
+    if (choice == 'y')
         game_data->isTakeTurns = true;
     //Initialize shared memory (game_data) fields to default values
     game_data->numOfPlayers = 0;
@@ -211,8 +210,6 @@ void play_game(int sock) {
     int playerTurn = 0; //Tracks which player's turn it is; starts at 0
     pthread_mutex_init(&mutex, NULL);
 
-
-    currPlayer = game_data->numOfPlayers++;
     game_data->playerTurn = 0;
     for (i =0; i < MAX_PLAYERS; i++) //Initialize scores; ***will move later***
         game_data->playerScores[i] = 0; 
@@ -224,7 +221,7 @@ void play_game(int sock) {
     status = read(sock, buffer, 255); // read any input
     printf(buffer);
     pthread_mutex_lock(&mutex);
-    game_data->numOfPlayers++;
+    currPlayer = game_data->numOfPlayers++;
     pthread_mutex_unlock(&mutex);
 
     while (game_data->expPlayers != game_data->numOfPlayers) { //State: Game start OR Game restart
