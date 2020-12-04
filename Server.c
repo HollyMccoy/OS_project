@@ -426,10 +426,9 @@ bool play_game(int sock) {
                     //Will need to alter code to offer ability to switch game modes
                     //==> Use a code to pick between a) Play this game mode again b) Switch modes, or c) Quit (or "Enter any other key to quit")
                 }
-                else { //Client response was to end game
+                else //Client response was to end game
                     game_data->numOfPlayers--;
                     break;
-                }
             }
             else if (isGameOver()) {
                 //Create game over buffer with final scores
