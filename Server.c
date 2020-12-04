@@ -219,19 +219,11 @@ void play_game(int sock) {
     while (game_data->expPlayers != game_data->numOfPlayers) { //State: Game start OR Game restart
         //Ensure at least 2 clients connected and that all expected players have entered "ready"
         
-        //Possible issues on client side code: what do they write back to the above message to continue?
-        //==> Could use a non-user message as an automatic client response, but this could lead to many quick print statements
-        //==> Or, could simply add to the above message "...Press Enter to refresh."
-        //==> what if we remove the idea of a ready message and just dont send out the deck of cards till all players have connected?
-        // message to buffer example: "Waiting on other players...(3/5) players have joined..."
-
-        strcpy(buffer, "\nWaiting on other players...");
-        sprintf(tempString, "(%d/", game_data->numOfPlayers);
-        strcat(buffer, tempString);
-        sprintf(tempString, "%d) players have joined...\n\n", game_data->expPlayers);
-        strcat(buffer, tempString);
+        strcpy(buffer, "\nWaiting on other players...press enter to refresh the number of players joined...\n");
         status = write(sock, buffer, 255);
-        continue; //stub
+        bzero(buffer, 256);
+        status = read(sock, buffer, 255);
+        
     }
 
     if (status < 0) {
