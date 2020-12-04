@@ -104,6 +104,11 @@ int main(int argc, char* argv[]) {
     //printf("Shared memory creation was successful.\n");
     printf("How many people will be playing?\n");
     scanf("%d", &game_data->expPlayers);
+    char choice;
+    printf("Enter \"y\" to force turns (defaults to free play): ");
+    scanf("%c", choice);
+    if (choice == 'y')
+        game_data->isTakeTurns = true;
     //Initialize shared memory (game_data) fields to default values
     game_data->numOfPlayers = 0;
 
