@@ -453,11 +453,6 @@ bool play_game(int sock) {
            //    strcat(buffer, tempString);
            //    continue; //stub
            //}
-            else if (isTakeTurns && (currPlayer != playerTurn)) {
-                printf("\nShouldn't be here yet--In development\n"); //Delete later
-                break; //Delete later
-                //Will send code (e.g., '2') telling client to wait for its turn
-            }
             else if (game_data->isTakeTurns && (currPlayer != game_data->playerTurn)) {
                 bzero(buffer, MAX_BUFFER);
                 buffer[0] = '2';
