@@ -153,7 +153,7 @@ void Play(int socketid)
                 strcpy(buffer, "\nReceived '2'\n");
                 sleep(3); //Refresh every three seconds
                 //printf("\nPress enter to refesh.");
-                fgets(buffer, 255, stdin); // place input into buffer
+                //fgets(buffer, 255, stdin); // place input into buffer
             }
             else {
                 if (buffer[0] == '9') //Server has sent game over message with option to restart
