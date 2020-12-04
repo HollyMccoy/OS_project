@@ -148,6 +148,13 @@ void Play(int socketid)
                 bzero(buffer, 256);
                 strcpy(buffer, "\nReceived '1'\n");
             }
+            else if (buffer[0] == '2') {
+                bzero(buffer, 256);
+                //strcpy(buffer, "\nReceived '2'\n");
+                //sleep(2);
+                printf("\nPress enter to refesh.");
+                fgets(buffer, 255, stdin); // place input into buffer
+            }
             else {
                 if (buffer[0] == '9') //Server has sent game over message with option to restart
                     checkInput = true;
