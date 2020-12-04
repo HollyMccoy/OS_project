@@ -71,7 +71,6 @@ int char_to_num_convert(char theChar);
 void test(void* expected, void* actual, const char* testName); // Testing Prototype
 bool validate_input(char userInput);
 bool isGameOver();
-void play_game(int sock);
 bool play_game(int sock);
 
 
